@@ -14,9 +14,14 @@ namespace InventarisTEI
             {
                 string baseDir = AppDomain.CurrentDomain.BaseDirectory;
                 string urlConfigFile = Path.Combine(baseDir, "app_url.txt");
-                string targetUrl = "";
+                if (!File.Exists(urlConfigFile))
+                {
+                    urlConfigFile = Path.Combine(baseDir, "..", "..", "app_url.txt");
+                }
 
-                // 1. Cek apakah ada file konfigurasi URL Online (misal GitHub Pages / Firebase Hosting)
+                string targetUrl = "https://iskakfatoni.github.io/inventaris-tei-smkmutukemlagi/";
+
+                // 1. Cek apakah ada file konfigurasi URL Online
                 if (File.Exists(urlConfigFile))
                 {
                     string content = File.ReadAllText(urlConfigFile).Trim();
@@ -25,17 +30,19 @@ namespace InventarisTEI
                         targetUrl = content;
                     }
                 }
-
-                // 2. Jika tidak ada URL online, gunakan berkas lokal index.html
-                if (string.IsNullOrEmpty(targetUrl))
+                else
                 {
+                    // 2. Cek berkas lokal index.html
                     string indexPath = Path.Combine(baseDir, "index.html");
                     if (!File.Exists(indexPath))
                     {
-                        MessageBox.Show("Berkas index.html tidak ditemukan di folder aplikasi!", "Inventaris TEI", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        return;
+                        indexPath = Path.Combine(baseDir, "..", "..", "index.html");
                     }
-                    targetUrl = new Uri(indexPath).AbsoluteUri;
+
+                    if (File.Exists(indexPath))
+                    {
+                        targetUrl = new Uri(Path.GetFullPath(indexPath)).AbsoluteUri;
+                    }
                 }
 
                 // Argumen untuk menyembunyikan bilah URL (Standalone App Window Mode)
