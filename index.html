@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventaris TEI SMK MUTU KEMLAGI</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- PWA Manifest for Standalone App (Hides URL bar completely) -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0B0F17">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Inventaris TEI">
+
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+  <!-- ================= SCREEN 1: LOGIN LANDING PAGE ================= -->
+  <div id="screen-login" class="login-screen-wrapper">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-logo-icon">
+          <i class="ph-bold ph-circuit-board"></i>
+        </div>
+        <h2>Inventaris TEI</h2>
+        <p class="login-subtitle">SMK Muhammadiyah 1 Kemlagi (SMK MUTU KEMLAGI)</p>
+        <span class="badge-status-system" style="margin-top: 6px;">
+          <span class="pulse-dot"></span>
+          <span>Bengkel Elektronika Industri • TA 2026/2027</span>
+        </span>
+      </div>
+
+      <form id="form-login-landing">
+        <div class="form-group">
+          <label><i class="ph-bold ph-envelope-simple"></i> Email Pengguna <span class="required">*</span></label>
+          <select id="login-landing-email" required>
+            <option value="akbarhasfi020@gmail.com">akbarhasfi020@gmail.com (Akbar Rayhan - Toolman)</option>
+            <option value="sutarinirs@gmail.com">sutarinirs@gmail.com (Rahayu Sutarini - Guru)</option>
+            <option value="iskakfatoni@gmail.com">iskakfatoni@gmail.com (M. Iskak Fatoni - Kajur)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label><i class="ph-bold ph-lock-key"></i> Password <span class="required">*</span></label>
+          <input type="password" id="login-landing-password" placeholder="Password default: 12345" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 12px; padding: 12px; font-size: 0.95rem;">
+          <i class="ph-bold ph-sign-in"></i> Masuk ke Sistem
+        </button>
+      </form>
+
+      <div class="login-footer-info">
+        <div class="info-tag-list">
+          <div><i class="ph-bold ph-info"></i> Password default akun: <code>12345</code></div>
+          <div><i class="ph-bold ph-key"></i> Password dapat diganti setelah berhasil masuk.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SCREEN 2: MAIN APP CONTAINER (HIDDEN UNTIL LOGIN) ================= -->
+  <div id="screen-app" style="display: none;">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="brand-logo">
+          <div class="logo-icon">
+            <i class="ph-bold ph-circuit-board"></i>
+          </div>
+          <div class="brand-text">
+            <h1>Inventaris TEI</h1>
+            <span>SMK MUTU KEMLAGI</span>
+          </div>
+        </div>
+        <div class="badge-status-system">
+          <span class="pulse-dot"></span>
+          <span>Database Excel Terhubung</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="user-profile-badge" id="user-profile-display">
+          <div class="avatar" id="user-avatar">AR</div>
+          <div class="user-meta">
+            <span class="user-name" id="user-name-display">Akbar Rayhan</span>
+            <span class="user-role-tag" id="user-role-tag">Toolman (Petugas Utama)</span>
+          </div>
+        </div>
+
+        <button class="btn-icon" id="btn-open-change-password" title="Ganti Password Akun">
+          <i class="ph-bold ph-key"></i>
+        </button>
+
+        <button class="btn-icon" id="btn-open-rbac-guide" title="Lihat Aturan Hak Akses Pengguna">
+          <i class="ph-bold ph-shield-check"></i>
+        </button>
+
+        <button class="btn-icon" id="btn-open-settings" title="Pengaturan Database & Reset Excel">
+          <i class="ph-bold ph-gear"></i>
+        </button>
+
+        <button class="btn-icon" id="btn-logout" title="Keluar / Logout" style="color: var(--color-danger); border-color: rgba(239, 68, 68, 0.3);">
+          <i class="ph-bold ph-sign-out"></i>
+        </button>
+      </div>
+    </header>
+
+      <button class="btn-icon" id="btn-open-change-password" title="Ganti Password Akun">
+        <i class="ph-bold ph-key"></i>
+      </button>
+
+      <button class="btn-icon" id="btn-open-rbac-guide" title="Lihat Aturan Hak Akses Pengguna">
+        <i class="ph-bold ph-shield-check"></i>
+      </button>
+      <button class="btn-icon" id="btn-open-settings" title="Pengaturan Database & Reset Excel">
+        <i class="ph-bold ph-gear"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Layout Container -->
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="app-sidebar">
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-view="inventory">
+          <i class="ph-bold ph-table"></i>
+          <span>Data Inventaris</span>
+        </button>
+        <button class="nav-item" data-view="rekap">
+          <i class="ph-bold ph-chart-pie-slice"></i>
+          <span>Rekapitulasi Kondisi</span>
+        </button>
+        <button class="nav-item" data-view="proposals">
+          <i class="ph-bold ph-git-pull-request"></i>
+          <span>Usulan & Approval</span>
+          <span class="badge badge-condition-rusak_ringan" id="nav-pending-badge" style="display:none; margin-left: auto; font-size: 0.65rem; padding: 2px 6px;">1</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="lab-info-card">
+          <i class="ph ph-buildings"></i>
+          <div>
+            <strong>Bengkel TEI</strong>
+            <small>SMK Muhammadiyah 1 Kemlagi</small>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="app-content">
+      
+      <!-- ================= VIEW 1: DATA INVENTARIS (SESUAI SHEET 1 EXCEL) ================= -->
+      <section id="view-inventory" class="content-view active">
+        <div class="page-title-bar">
+          <div>
+            <h2>Daftar Inventaris Laboratorium / Bengkel TEI</h2>
+            <p class="subtitle">Tabel data mengacu langsung pada struktur format Excel • TA 2026/2027</p>
+          </div>
+          <div class="action-buttons">
+            <button class="btn btn-primary" id="btn-main-inventory-action">
+              <i class="ph-bold ph-plus"></i> <span id="label-main-action">Tambah Barang</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter & Pencarian Cepat -->
+        <div class="filter-toolbar">
+          <div class="search-input-wrap">
+            <i class="ph ph-magnifying-glass"></i>
+            <input type="text" id="excel-search-input" placeholder="Cari kode barang, nama alat, spesifikasi, lokasi rak...">
+          </div>
+          <div class="filter-group">
+            <select id="filter-excel-kondisi" class="filter-select">
+              <option value="all">Semua Kondisi</option>
+              <option value="Baik">Baik</option>
+              <option value="Rusak Ringan">Rusak Ringan</option>
+              <option value="Rusak Berat">Rusak Berat</option>
+              <option value="Hilang">Hilang</option>
+            </select>
+
+            <select id="filter-excel-lokasi" class="filter-select">
+              <option value="all">Semua Lokasi / Rak</option>
+              <option value="Etalase A">Etalase A</option>
+              <option value="Lemari 1">Lemari 1</option>
+              <option value="Kontener box kecil">Kontener box kecil</option>
+            </select>
+
+            <select id="filter-excel-status" class="filter-select">
+              <option value="all">Semua Status</option>
+              <option value="Digunakan">Digunakan</option>
+              <option value="Disimpan">Disimpan</option>
+              <option value="Dalam Perbaikan">Dalam Perbaikan</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tabel Inventaris (14 Kolom Excel) -->
+        <div class="table-card">
+          <div class="table-responsive">
+            <table class="custom-table" id="table-excel-inventory">
+              <thead>
+                <tr>
+                  <th style="width: 40px;">No</th>
+                  <th>Kode Barang</th>
+                  <th>Nama Barang / Alat</th>
+                  <th>Spesifikasi / Merk</th>
+                  <th>Jumlah</th>
+                  <th>Kondisi</th>
+                  <th>Status</th>
+                  <th>Sumber Dana</th>
+                  <th>Lokasi / Rak</th>
+                  <th>Tgl. Cek</th>
+                  <th>Keterangan</th>
+                  <th class="text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-excel-inventory">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= VIEW 2: REKAPITULASI (SESUAI SHEET 2 EXCEL) ================= -->
+      <section id="view-rekap" class="content-view">
+        <div class="page-title-bar">
+          <div>
+            <h2>Rekapitulasi Kondisi Inventaris</h2>
+            <p class="subtitle">Laporan ringkasan kondisi alat & bahan bengkel TEI sesuai Sheet 2 Excel.</p>
+          </div>
+        </div>
+
+        <!-- Cards Ringkasan -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon icon-blue">
+              <i class="ph-bold ph-check-circle"></i>
+            </div>
+            <div class="stat-data">
+              <span class="stat-title">Kondisi Baik</span>
+              <span class="stat-value text-success" id="rekap-unit-baik">0</span>
+              <span class="stat-desc" id="rekap-jenis-baik">0 jenis barang</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon icon-amber">
+              <i class="ph-bold ph-wrench"></i>
+            </div>
+            <div class="stat-data">
+              <span class="stat-title">Rusak Ringan</span>
+              <span class="stat-value text-amber" id="rekap-unit-rusak-ringan">0</span>
+              <span class="stat-desc" id="rekap-jenis-rusak-ringan">0 jenis barang</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon icon-rose">
+              <i class="ph-bold ph-x-circle"></i>
+            </div>
+            <div class="stat-data">
+              <span class="stat-title">Rusak Berat / Hilang</span>
+              <span class="stat-value text-rose" id="rekap-unit-rusak-berat">0</span>
+              <span class="stat-desc">0 unit hilang</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon icon-purple">
+              <i class="ph-bold ph-squares-four"></i>
+            </div>
+            <div class="stat-data">
+              <span class="stat-title">Total Keseluruhan</span>
+              <span class="stat-value" id="rekap-total-unit">0</span>
+              <span class="stat-desc" id="rekap-total-jenis">0 jenis barang</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabel Rekapitulasi Resmi Excel -->
+        <div class="table-card">
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Kondisi</th>
+                  <th>Jumlah Jenis Barang</th>
+                  <th>Total Unit</th>
+                  <th>Persentase</th>
+                  <th>Keterangan / Catatan</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-excel-rekap">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= VIEW 3: USULAN & APPROVAL ================= -->
+      <section id="view-proposals" class="content-view">
+        <div class="page-title-bar">
+          <div>
+            <h2>Usulan Pengadaan Barang & Log Approval</h2>
+            <p class="subtitle">Alur: Guru mengajukan usulan ➔ Toolman approve ➔ Otomatis masuk tabel ➔ Log untuk Kajur.</p>
+          </div>
+          <div class="action-buttons">
+            <button class="btn btn-primary" onclick="openProposalModal()">
+              <i class="ph-bold ph-paper-plane-tilt"></i> Buat Usulan Baru
+            </button>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Tgl. Usulan</th>
+                  <th>Kode & Nama Barang</th>
+                  <th>Spesifikasi</th>
+                  <th>Jumlah</th>
+                  <th>Lokasi Rak</th>
+                  <th>Pengusul & Keperluan</th>
+                  <th>Status Review</th>
+                  <th>Catatan Toolman</th>
+                  <th class="text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-proposals-list">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- Modal: Tambah / Edit Barang (100% Kolom Excel) -->
+  <div class="modal-overlay" id="modal-item">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-item-title"><i class="ph-bold ph-package"></i> Tambah Data Inventaris</h3>
+        <button class="btn-close-modal" data-close="modal-item"><i class="ph-bold ph-x"></i></button>
+      </div>
+      <form id="form-item">
+        <input type="hidden" id="form-item-id">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Kode Barang <span class="required">*</span></label>
+              <input type="text" id="form-kode" placeholder="Contoh: TEI-ARD-002" required>
+            </div>
+            <div class="form-group">
+              <label>Nama Barang / Alat <span class="required">*</span></label>
+              <input type="text" id="form-nama" placeholder="Contoh: Arduino Uno R3" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Spesifikasi / Merk</label>
+            <input type="text" id="form-spek" placeholder="Contoh: Original / ATmega328P">
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Jumlah <span class="required">*</span></label>
+              <input type="number" id="form-jumlah" min="1" value="1" required>
+            </div>
+            <div class="form-group">
+              <label>Satuan <span class="required">*</span></label>
+              <input type="text" id="form-satuan" value="Unit" placeholder="Unit, pcs, set" required>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Kondisi</label>
+              <select id="form-kondisi">
+                <option value="Baik">Baik</option>
+                <option value="Rusak Ringan">Rusak Ringan</option>
+                <option value="Rusak Berat">Rusak Berat</option>
+                <option value="Hilang">Hilang</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Status Penggunaan</label>
+              <select id="form-status">
+                <option value="Digunakan">Digunakan</option>
+                <option value="Disimpan">Disimpan</option>
+                <option value="Dalam Perbaikan">Dalam Perbaikan</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Tahun Perolehan</label>
+              <input type="number" id="form-tahun" value="2026">
+            </div>
+            <div class="form-group">
+              <label>Sumber Dana</label>
+              <input type="text" id="form-dana" value="Dana sekolah">
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Lokasi / Rak <span class="required">*</span></label>
+              <input type="text" id="form-lokasi" placeholder="Contoh: Lemari 1, Etalase A, Kontener box kecil" required>
+            </div>
+            <div class="form-group">
+              <label>Tgl. Cek Terakhir</label>
+              <input type="date" id="form-tgl-cek">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Keterangan</label>
+            <input type="text" id="form-keterangan" placeholder="Contoh: Untuk Praktek SKE / SKI / Gamtek">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close="modal-item">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan ke Inventaris</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Usulan Pengadaan oleh Guru -->
+  <div class="modal-overlay" id="modal-proposal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3><i class="ph-bold ph-paper-plane-tilt"></i> Formulir Usulan Barang Baru</h3>
+        <button class="btn-close-modal" data-close="modal-proposal"><i class="ph-bold ph-x"></i></button>
+      </div>
+      <form id="form-proposal">
+        <div class="modal-body">
+          <div class="alert-box alert-warning" style="padding: 10px 14px; margin-bottom: 14px;">
+            <i class="ph-fill ph-info"></i>
+            <div class="alert-content">
+              <p style="font-size: 0.8rem; color: #fff;">Usulan ini akan diperiksa oleh <strong>Toolman</strong> untuk disetujui dan otomatis masuk ke tabel inventaris.</p>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Usulan Kode Barang <span class="required">*</span></label>
+              <input type="text" id="prop-kode" placeholder="Contoh: TEI-ESP-010" required>
+            </div>
+            <div class="form-group">
+              <label>Nama Barang / Alat <span class="required">*</span></label>
+              <input type="text" id="prop-nama" placeholder="Contoh: ESP32 NodeMCU" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Spesifikasi / Merk</label>
+            <input type="text" id="prop-spek" placeholder="Contoh: 30 Pin Dual Core">
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Jumlah Kebutuhan <span class="required">*</span></label>
+              <input type="number" id="prop-jumlah" min="1" value="10" required>
+            </div>
+            <div class="form-group">
+              <label>Satuan</label>
+              <input type="text" id="prop-satuan" value="Unit" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Rencana Lokasi / Rak</label>
+            <input type="text" id="prop-lokasi" value="Lemari 1" required>
+          </div>
+
+          <div class="form-group">
+            <label>Alasan Kebutuhan / Peruntukan Praktik <span class="required">*</span></label>
+            <textarea id="prop-keterangan" rows="3" placeholder="Contoh: Untuk Praktek IoT Mata Pelajaran SKI Semester Genap" required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close="modal-proposal">Batal</button>
+          <button type="submit" class="btn btn-primary">Kirimkan Usulan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Review Usulan oleh Toolman -->
+  <div class="modal-overlay" id="modal-review-proposal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3><i class="ph-bold ph-check-circle"></i> Review Usulan Barang</h3>
+        <button class="btn-close-modal" data-close="modal-review-proposal"><i class="ph-bold ph-x"></i></button>
+      </div>
+      <form id="form-review-proposal">
+        <input type="hidden" id="review-prop-id">
+        <div class="modal-body">
+          <div id="review-prop-details" style="background: rgba(255,255,255,0.03); padding: 14px; border-radius: var(--radius-md); margin-bottom: 14px; font-size: 0.88rem;"></div>
+          <div class="form-group">
+            <label>Catatan Toolman / Alasan <span class="required">*</span></label>
+            <textarea id="review-notes" rows="3" placeholder="Contoh: Disetujui. Sesuai kurikulum praktik elektronika." required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close="modal-review-proposal">Batal</button>
+          <button type="button" class="btn btn-outline-warning" id="btn-execute-reject" style="color: var(--color-danger); border-color: var(--color-danger);">Tolak</button>
+          <button type="submit" class="btn btn-primary" id="btn-execute-approve">Setujui & Masukkan ke Inventaris</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Matriks Hak Akses -->
+  <div class="modal-overlay" id="modal-rbac-info">
+    <div class="modal-card" style="max-width: 680px;">
+      <div class="modal-header">
+        <h3><i class="ph-bold ph-shield-check"></i> Matriks Hak Akses Pengguna</h3>
+        <button class="btn-close-modal" data-close="modal-rbac-info"><i class="ph-bold ph-x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="custom-table" style="font-size: 0.82rem;">
+            <thead>
+              <tr>
+                <th>Fitur</th>
+                <th>👨‍🏫 Guru Praktik</th>
+                <th>🔧 Toolman</th>
+                <th>👔 Kepala Jurusan</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Lihat Data & Rekap</td>
+                <td><span class="text-success font-bold">✅ Boleh</span></td>
+                <td><span class="text-success font-bold">✅ Boleh</span></td>
+                <td><span class="text-success font-bold">✅ Boleh</span></td>
+              </tr>
+              <tr>
+                <td>Tambah / Edit Barang</td>
+                <td><span class="text-amber font-bold">📝 Pengajuan Usulan</span></td>
+                <td><span class="text-cyan font-bold">✅ Wewenang Utama</span></td>
+                <td><span class="text-success font-bold">🔍 Audit Log</span></td>
+              </tr>
+              <tr>
+                <td>Hapus Data Barang</td>
+                <td><span class="text-rose font-bold">❌ Dilarang</span></td>
+                <td><span class="text-amber font-bold">⚠️ Perlu Izin Kajur</span></td>
+                <td><span class="text-cyan font-bold">✅ Approval Tunggal</span></td>
+              </tr>
+              <tr>
+                <td>Review & Approval Usulan</td>
+                <td><span class="text-rose font-bold">❌ Dilarang</span></td>
+                <td><span class="text-cyan font-bold">✅ Wewenang Utama</span></td>
+                <td><span class="text-success font-bold">🔍 Audit Log Lengkap</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-close="modal-rbac-info">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Pengaturan & Reset Excel -->
+  <div class="modal-overlay" id="modal-settings">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3><i class="ph-bold ph-gear"></i> Pengaturan Database</h3>
+        <button class="btn-close-modal" data-close="modal-settings"><i class="ph-bold ph-x"></i></button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 16px;">
+          Aplikasi menggunakan database yang 100% selaras dengan berkas <strong>Inventaris_Lab_TEI.xlsx</strong>.
+        </p>
+        <button type="button" class="btn btn-secondary" id="btn-reset-excel-data" style="width: 100%;">
+          <i class="ph-bold ph-arrow-counter-clockwise"></i> Reset Data Kembali ke Isi File Excel Asli
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Ganti Password Pengguna -->
+  <div class="modal-overlay" id="modal-change-password">
+    <div class="modal-card" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3><i class="ph-bold ph-key"></i> Ganti Password Akun</h3>
+        <button class="btn-close-modal" data-close="modal-change-password"><i class="ph-bold ph-x"></i></button>
+      </div>
+      <form id="form-change-password">
+        <div class="modal-body">
+          <div style="background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: var(--radius-md); margin-bottom: 14px; font-size: 0.82rem;">
+            Akun Aktif: <strong id="cp-user-name" style="color: var(--accent-cyan);">Akbar Rayhan</strong><br>
+            <small style="color: var(--text-dim);" id="cp-user-email">akbarhasfi020@gmail.com</small>
+          </div>
+
+          <div class="form-group">
+            <label>Password Lama <span class="required">*</span></label>
+            <input type="password" id="cp-old-password" placeholder="Password default: 12345" required>
+          </div>
+
+          <div class="form-group">
+            <label>Password Baru <span class="required">*</span></label>
+            <input type="password" id="cp-new-password" placeholder="Minimal 5 karakter" minlength="5" required>
+          </div>
+
+          <div class="form-group">
+            <label>Konfirmasi Password Baru <span class="required">*</span></label>
+            <input type="password" id="cp-confirm-password" placeholder="Ketik ulang password baru" minlength="5" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close="modal-change-password">Batal</button>
+          <button type="submit" class="btn btn-primary"><i class="ph-bold ph-floppy-disk"></i> Simpan Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  </div> <!-- End #screen-app -->
+
+  <!-- Toast -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="firebase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

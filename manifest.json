@@ -1,0 +1,24 @@
+{
+  "name": "Inventaris TEI SMK MUTU KEMLAGI",
+  "short_name": "Inventaris TEI",
+  "description": "Sistem Informasi Manajemen Inventaris Bengkel Teknik Elektronika Industri",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0B0F17",
+  "theme_color": "#06B6D4",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2991/2991148.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2991/2991148.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isKajur() {
+      return isAuthenticated() && getUserRole() == 'kajur';
+    }
+
+    function isToolman() {
+      return isAuthenticated() && getUserRole() == 'toolman';
+    }
+
+    function isGuru() {
+      return isAuthenticated() && getUserRole() == 'guru';
+    }
+
+    // 1. Koleksi Pengguna (Users)
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isKajur() || (isAuthenticated() && request.auth.uid == userId);
+    }
+
+    // 2. Data Inventaris (Sesuai Kolom Excel)
+    match /inventaris/{itemId} {
+      allow read: if isAuthenticated();
+      // Toolman & Kajur bisa tambah & edit data barang
+      allow create, update: if isToolman() || isKajur();
+      // Hanya Kajur yang berwenang menghapus data barang (Pemutihan Aset)
+      allow delete: if isKajur();
+    }
+
+    // 3. Usulan Pengadaan Barang (Guru -> Toolman Approval -> Kajur Log)
+    match /usulan_barang/{propId} {
+      allow read: if isAuthenticated();
+      // Guru, Toolman, dan Kajur bisa membuat usulan
+      allow create: if isAuthenticated();
+      // Toolman & Kajur berwenang melakukan Review & Approval
+      allow update: if isToolman() || isKajur();
+      allow delete: if isKajur();
+    }
+  }
+}
