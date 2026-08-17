@@ -362,9 +362,9 @@ function renderInventoryTable() {
         </button>
       `;
     } else {
-      // Kajur: Supervisi
+      // Kajur: Supervisi (Label Terverifikasi rapi tanpa ikon)
       actionButtons = `
-        <span class="code-tag" style="font-size: 0.75rem;"><i class="ph ph-eye"></i> Terverifikasi</span>
+        <span class="badge badge-condition-baik" style="font-size: 0.75rem; font-weight: 500; padding: 4px 8px;">Terverifikasi</span>
       `;
     }
 
