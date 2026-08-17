@@ -19,61 +19,8 @@ class FirebaseInventoryStore {
     this.firebaseConfig = firebaseConfig;
     this.inventory = [];
     this.proposals = [];
-    this.users = [
-      {
-        id: 'usr-akbar',
-        name: 'Akbar Rayhan',
-        email: 'akbarhasfi020@gmail.com',
-        username: 'akbarhasfi020@gmail.com',
-        role: 'toolman',
-        roleTitle: 'Toolman (Petugas Utama)',
-        initials: 'AR',
-        password: '12345'
-      },
-      {
-        id: 'usr-rahayu',
-        name: 'Rahayu Sutarini',
-        email: 'sutarinirs@gmail.com',
-        username: 'sutarinirs@gmail.com',
-        role: 'guru',
-        roleTitle: 'Guru Praktik (Pengusul)',
-        initials: 'RS',
-        password: '12345'
-      },
-      {
-        id: 'usr-rizky',
-        name: 'Rizky Prayoga',
-        email: 'zkypra704@gmail.com',
-        username: 'zkypra704@gmail.com',
-        role: 'guru',
-        roleTitle: 'Guru Praktik (Pengusul)',
-        initials: 'RP',
-        password: '12345'
-      },
-      {
-        id: 'usr-iskak',
-        name: 'M. Iskak Fatoni',
-        email: 'iskakfatoni@gmail.com',
-        username: 'iskakfatoni@gmail.com',
-        role: 'kajur',
-        roleTitle: 'Kepala Jurusan (Supervisi)',
-        initials: 'IF',
-        password: '12345'
-      },
-      {
-        id: 'usr-guest',
-        name: 'Tamu (Guest)',
-        email: 'guest',
-        username: 'guest',
-        role: 'guest',
-        roleTitle: 'Guest (Hanya Lihat Data)',
-        initials: 'GT',
-        password: '123'
-      }
-    ];
-    this.tahunAjaranList = [
-      { id: 'ta-2026-2027', nama: '2026/2027', isAktif: true, createdAt: '2026-08-01' }
-    ];
+    this.users = [];
+    this.tahunAjaranList = [];
     this.activeTahunAjaran = '2026/2027';
     this.isCloudConnected = false;
     this.listeners = [];
@@ -132,25 +79,14 @@ class FirebaseInventoryStore {
         console.warn("Firestore usulan_barang listener:", err.message);
       });
 
-      // 4. Realtime listener untuk koleksi users
+      // 4. Realtime listener untuk koleksi users (murni 100% dari Cloud Firestore)
       const usersCol = collection(this.db, "users");
       onSnapshot(usersCol, (snapshot) => {
         if (!snapshot.empty) {
-          const cloudUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          // Pastikan akun guest default selalu tersedia
-          if (!cloudUsers.some(u => u.role === 'guest' || u.username === 'guest' || u.email === 'guest')) {
-            cloudUsers.push({
-              id: 'usr-guest',
-              name: 'Tamu (Guest)',
-              email: 'guest',
-              username: 'guest',
-              role: 'guest',
-              roleTitle: 'Guest (Hanya Lihat Data)',
-              initials: 'GT',
-              password: '123'
-            });
-          }
-          this.users = cloudUsers;
+          this.users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          this.notifyListeners();
+        } else {
+          this.users = [];
           this.notifyListeners();
         }
       }, (err) => {
@@ -333,27 +269,11 @@ class FirebaseInventoryStore {
 
   getUserByEmail(email) {
     if (!email) return null;
-    const cleanEmail = email.trim().toLowerCase();
-
-    // Dukungan login username 'guest'
-    if (cleanEmail === 'guest') {
-      const foundGuest = this.users.find(u => u.role === 'guest' || u.username === 'guest' || u.email === 'guest');
-      if (foundGuest) return foundGuest;
-      return {
-        id: 'usr-guest',
-        name: 'Tamu (Guest)',
-        email: 'guest',
-        username: 'guest',
-        role: 'guest',
-        roleTitle: 'Guest (Hanya Lihat Data)',
-        initials: 'GT',
-        password: '123'
-      };
-    }
-
+    const clean = email.trim().toLowerCase();
     return this.users.find(u => 
-      (u.email && u.email.trim().toLowerCase() === cleanEmail) ||
-      (u.username && u.username.trim().toLowerCase() === cleanEmail)
+      (u.email && u.email.trim().toLowerCase() === clean) ||
+      (u.username && u.username.trim().toLowerCase() === clean) ||
+      (u.id && u.id.trim().toLowerCase() === clean)
     );
   }
 
@@ -361,8 +281,7 @@ class FirebaseInventoryStore {
     const user = this.getUserByEmail(email);
     if (!user) return false;
     const cleanPassInput = (passwordInput || '').trim();
-    const defaultPass = user.role === 'guest' ? '123' : '12345';
-    const storedPass = (user.password || defaultPass).trim();
+    const storedPass = (user.password || '').trim();
     return storedPass === cleanPassInput;
   }
 
@@ -374,7 +293,7 @@ class FirebaseInventoryStore {
     if (user.role === 'guest') {
       throw new Error("Akun Tamu (Guest) bersifat publik read-only dan password tidak dapat diubah!");
     }
-    if ((user.password || '12345').trim() !== (oldPassword || '').trim()) {
+    if ((user.password || '').trim() !== (oldPassword || '').trim()) {
       throw new Error("Password lama salah!");
     }
     if (!newPassword || newPassword.length < 5) {
