@@ -1,3 +1,1 @@
-# Masukkan URL GitHub Pages / Firebase Hosting Anda di baris bawah ini (jika sudah di-deploy online)
-# Contoh: https://username.github.io/inventaris-tei/
-# Jika file ini kosong, aplikasi otomatis membuka berkas lokal index.html
+https://iskakfatoni.github.io/inventaris-tei-smkmutukemlagi/
