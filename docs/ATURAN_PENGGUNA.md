@@ -10,9 +10,10 @@
 
 | No | Nama Pengguna | Email Akun | Peran (*Role*) | Posisi & Wewenang Utama |
 | :-: | :--- | :--- | :---: | :--- |
-| **1** | **Akbar Rayhan** | `akbarhasfi020@gmail.com` | **Toolman** | **Petugas Utama Master Database:**<br>• Input, edit spesifikasi & jumlah barang<br>• Update kondisi alat (*Baik, Rusak, Hilang*) & rak<br>• **Menambah Tahun Ajaran Baru**<br>• **Eksekusi Fasilitas Migrasi Data ke TA Baru**<br>• Review & approval usulan barang dari Guru |
+| **1** | **Akbar Rayhan** | `akbarhasfi020@gmail.com` | **Toolman** | **Petugas Utama Master Database:**<br>• Input, edit spesifikasi & jumlah barang<br>• Update kondisi alat (*Baik, Rusak, Hilang*) & rak<br>• **Menambah Tahun Ajaran Baru**<br>• **Eksekusi Fasilitas Migrasi Data ke TA Baru**<br>• **Import Excel & Unduh Template 14 Kolom**<br>• Review & approval usulan barang dari Guru |
 | **2** | **Rahayu Sutarini** | `sutarinirs@gmail.com` | **Guru** | **Pengusul Kebutuhan Praktikum:**<br>• Mengajukan usulan alat/modul untuk praktik siswa<br>• Melihat kesiapan alat pada tahun ajaran aktif |
-| **3** | **M. Iskak Fatoni** | `iskakfatoni@gmail.com` | **Kepala Jurusan** | **Supervisi & Audit Log:**<br>• Memantau rekapitulasi kondisi alat per tahun ajaran<br>• Monitoring log riwayat usulan dan arsip tahun ajaran lampau |
+| **3** | **Rizky Prayoga** | `zkypra704@gmail.com` | **Guru** | **Pengusul Kebutuhan Praktikum:**<br>• Mengajukan usulan alat/modul untuk praktik siswa<br>• Melihat kesiapan alat pada tahun ajaran aktif |
+| **4** | **M. Iskak Fatoni** | `iskakfatoni@gmail.com` | **Kepala Jurusan** | **Supervisi & Audit Log:**<br>• Memantau rekapitulasi kondisi alat per tahun ajaran<br>• Monitoring log riwayat usulan dan arsip tahun ajaran lampau<br>• Wewenang Tambah Barang Master & Import Excel |
 
 ---
 

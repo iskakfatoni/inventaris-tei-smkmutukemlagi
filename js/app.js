@@ -14,6 +14,13 @@ const OFFICIAL_USERS = [
     initials: 'RS'
   },
   {
+    email: 'zkypra704@gmail.com',
+    name: 'Rizky Prayoga',
+    role: 'guru',
+    roleTitle: 'Guru Praktik TEI (Pengusul Kebutuhan)',
+    initials: 'RP'
+  },
+  {
     email: 'iskakfatoni@gmail.com',
     name: 'M. Iskak Fatoni',
     role: 'kajur',

@@ -12,6 +12,7 @@ Sistem Informasi Manajemen Inventaris Alat, Trainer Kit, dan Komponen Praktikum 
 | :--- | :--- | :--- | :---: |
 | **Toolman (Petugas Utama)** | Akbar Rayhan | `akbarhasfi020@gmail.com` | `12345` |
 | **Guru Praktik (Pengusul)** | Rahayu Sutarini | `sutarinirs@gmail.com` | `12345` |
+| **Guru Praktik (Pengusul)** | Rizky Prayoga | `zkypra704@gmail.com` | `12345` |
 | **Kepala Jurusan (Supervisi)** | M. Iskak Fatoni | `iskakfatoni@gmail.com` | `12345` |
 
 > 📖 Detail matriks hak akses & SOP lengkap dapat dilihat di [**docs/ATURAN_PENGGUNA.md**](docs/ATURAN_PENGGUNA.md).
@@ -27,6 +28,8 @@ inventaris-tei-smk-mutu-kemlagi/
 │   │   ├── Inventaris_TEI.exe       <-- Aplikasi desktop Windows standalone
 │   │   └── app_url.txt              <-- Konfigurasi target URL online
 │   ├── image/                       <-- Tempat penyimpanan berkas gambar/foto
+│   │   ├── logo-smkmutu.webp
+│   │   └── logo-tei.webp
 │   └── page/
 │       └── dashboard.html           <-- Halaman utama dashboard & inventaris
 ├── css/

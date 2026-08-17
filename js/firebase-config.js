@@ -35,6 +35,15 @@ const DEFAULT_ACCOUNTS = [
     password: '12345'
   },
   {
+    id: 'user-rizky',
+    email: 'zkypra704@gmail.com',
+    name: 'Rizky Prayoga',
+    role: 'guru',
+    roleTitle: 'Guru Praktik TEI (Pengusul Kebutuhan)',
+    initials: 'RP',
+    password: '12345'
+  },
+  {
     id: 'user-iskak',
     email: 'iskakfatoni@gmail.com',
     name: 'M. Iskak Fatoni',
