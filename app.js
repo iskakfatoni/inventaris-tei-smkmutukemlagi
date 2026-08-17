@@ -62,19 +62,19 @@ function initAuthLanding() {
     const email = document.getElementById('login-landing-email').value.trim();
     const password = document.getElementById('login-landing-password').value.trim();
 
-    const targetUser = OFFICIAL_USERS.find(u => u.email === email);
+    const targetUser = OFFICIAL_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
     if (!targetUser) {
-      showToast('Email pengguna tidak terdaftar!', 'error');
+      showToast('Email atau password yang Anda masukkan salah!', 'error');
       return;
     }
 
     const isValid = window.db.verifyPassword(email, password);
     if (isValid) {
-      sessionStorage.setItem('INVENTARIS_LOGGED_USER', email);
+      sessionStorage.setItem('INVENTARIS_LOGGED_USER', targetUser.email);
       loginAs(targetUser);
       showToast(`Selamat datang, ${targetUser.name}! (${targetUser.roleTitle})`, 'success');
     } else {
-      showToast('Password salah! Password default adalah 12345', 'error');
+      showToast('Email atau password yang Anda masukkan salah!', 'error');
     }
   });
 

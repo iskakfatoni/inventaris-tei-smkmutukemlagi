@@ -43,29 +43,18 @@
       <form id="form-login-landing">
         <div class="form-group">
           <label><i class="ph-bold ph-envelope-simple"></i> Email Pengguna <span class="required">*</span></label>
-          <select id="login-landing-email" required>
-            <option value="akbarhasfi020@gmail.com">akbarhasfi020@gmail.com (Akbar Rayhan - Toolman)</option>
-            <option value="sutarinirs@gmail.com">sutarinirs@gmail.com (Rahayu Sutarini - Guru)</option>
-            <option value="iskakfatoni@gmail.com">iskakfatoni@gmail.com (M. Iskak Fatoni - Kajur)</option>
-          </select>
+          <input type="email" id="login-landing-email" placeholder="Masukkan alamat email" autocomplete="username" required>
         </div>
 
         <div class="form-group">
           <label><i class="ph-bold ph-lock-key"></i> Password <span class="required">*</span></label>
-          <input type="password" id="login-landing-password" placeholder="Password default: 12345" required>
+          <input type="password" id="login-landing-password" placeholder="Masukkan password" autocomplete="current-password" required>
         </div>
 
         <button type="submit" class="btn btn-primary btn-block" style="margin-top: 12px; padding: 12px; font-size: 0.95rem;">
           <i class="ph-bold ph-sign-in"></i> Masuk ke Sistem
         </button>
       </form>
-
-      <div class="login-footer-info">
-        <div class="info-tag-list">
-          <div><i class="ph-bold ph-info"></i> Password default akun: <code>12345</code></div>
-          <div><i class="ph-bold ph-key"></i> Password dapat diganti setelah berhasil masuk.</div>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -621,7 +610,7 @@
 
           <div class="form-group">
             <label>Password Lama <span class="required">*</span></label>
-            <input type="password" id="cp-old-password" placeholder="Password default: 12345" required>
+            <input type="password" id="cp-old-password" placeholder="Masukkan password lama Anda" required>
           </div>
 
           <div class="form-group">
