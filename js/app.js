@@ -1,3 +1,97 @@
+/* ===================================================
+   0. THEME MANAGER (DARK / LIGHT / AUTO)
+   =================================================== */
+
+const THEME_KEY = 'INVENTARIS_THEME';
+
+function getTheme() {
+  return localStorage.getItem(THEME_KEY) || 'auto';
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  document.body.setAttribute('data-theme', theme);
+
+  // Update theme meta color
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  if (metaTheme) {
+    const isDark = theme === 'dark' || (theme === 'auto' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    metaTheme.setAttribute('content', isDark ? '#0B0F17' : '#F8FAFC');
+  }
+
+  // Update all theme toggle buttons
+  updateThemeToggleButtons(theme);
+}
+
+function updateThemeToggleButtons(theme) {
+  const buttons = document.querySelectorAll('#btn-theme-toggle, .theme-toggle-btn');
+  buttons.forEach(btn => {
+    let iconClass = 'ph-desktop';
+    let titleText = 'Tema: Otomatis Sistem (Klik untuk Beralih)';
+
+    if (theme === 'dark') {
+      iconClass = 'ph-moon-stars';
+      titleText = 'Tema: Mode Gelap (Klik untuk Beralih)';
+    } else if (theme === 'light') {
+      iconClass = 'ph-sun';
+      titleText = 'Tema: Mode Terang (Klik untuk Beralih)';
+    }
+
+    btn.innerHTML = `<i class="ph-bold ${iconClass}"></i>`;
+    btn.setAttribute('title', titleText);
+    btn.setAttribute('aria-label', titleText);
+  });
+}
+
+function cycleTheme() {
+  const current = getTheme();
+  let next = 'dark';
+  let message = 'Tema diubah ke Mode Gelap';
+
+  if (current === 'dark') {
+    next = 'light';
+    message = 'Tema diubah ke Mode Terang';
+  } else if (current === 'light') {
+    next = 'auto';
+    message = 'Tema diubah ke Otomatis (Mengikuti Sistem)';
+  } else {
+    next = 'dark';
+    message = 'Tema diubah ke Mode Gelap';
+  }
+
+  localStorage.setItem(THEME_KEY, next);
+  applyTheme(next);
+  if (typeof showToast === 'function') {
+    showToast(message, 'info');
+  }
+}
+
+function initThemeManager() {
+  const currentTheme = getTheme();
+  applyTheme(currentTheme);
+
+  // Pasang listener pada semua tombol toggle tema
+  const buttons = document.querySelectorAll('#btn-theme-toggle, .theme-toggle-btn');
+  buttons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      cycleTheme();
+    });
+  });
+
+  // Listener untuk perubahan preferensi OS jika mode 'auto'
+  try {
+    const darkMatcher = window.matchMedia('(prefers-color-scheme: dark)');
+    if (darkMatcher && darkMatcher.addEventListener) {
+      darkMatcher.addEventListener('change', () => {
+        if (getTheme() === 'auto') {
+          applyTheme('auto');
+        }
+      });
+    }
+  } catch (e) {}
+}
+
 let currentUser = null; // Disimpan saat login aktif
 
 const isLoginPage = document.getElementById('screen-login') !== null;
@@ -5,6 +99,8 @@ const isDashboardPage = document.getElementById('screen-app') !== null;
 const isGuestPage = document.getElementById('screen-guest') !== null;
 
 document.addEventListener('DOMContentLoaded', () => {
+  initThemeManager();
+
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register(isLoginPage ? 'sw.js' : '../../sw.js').catch(() => {});
   }

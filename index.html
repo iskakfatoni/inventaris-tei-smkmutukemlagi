@@ -23,11 +23,26 @@
   
   <!-- Main Stylesheet -->
   <link rel="stylesheet" href="css/style.css">
+
+  <!-- Immediate Theme Initializer -->
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('INVENTARIS_THEME') || 'auto';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
 </head>
-<body class="dark-theme">
+<body>
 
   <!-- ================= PURE LOGIN LANDING PAGE ================= -->
   <div id="screen-login" class="login-screen-wrapper">
+    <!-- Theme Toggle Switcher -->
+    <div class="login-theme-switch-wrap">
+      <button type="button" class="btn-icon theme-toggle-btn" id="btn-theme-toggle" title="Ubah Tema (Gelap / Terang / Otomatis)">
+        <i class="ph-bold ph-moon-stars"></i>
+      </button>
+    </div>
+
     <div class="login-card">
       <div class="login-header">
         <div class="login-logo-icon">

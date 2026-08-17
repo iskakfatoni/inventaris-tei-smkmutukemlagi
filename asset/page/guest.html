@@ -19,6 +19,14 @@
   
   <!-- Main Stylesheet -->
   <link rel="stylesheet" href="../../css/style.css">
+
+  <!-- Immediate Theme Initializer -->
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('INVENTARIS_THEME') || 'auto';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
   <style>
     /* Styling Khusus Tampilan Tamu (Guest) */
     .guest-container {
@@ -41,7 +49,7 @@
     }
   </style>
 </head>
-<body class="dark-theme">
+<body>
 
   <!-- ================= GUEST APP CONTAINER ================= -->
   <div id="screen-guest">
@@ -84,6 +92,11 @@
             <span class="user-role-tag" id="user-role-tag" style="color: var(--color-warning);">Mode Tamu (Hanya Lihat)</span>
           </div>
         </div>
+
+        <!-- Tombol Switch Tema (Dark/Light/Auto) -->
+        <button class="btn-icon theme-toggle-btn" id="btn-theme-toggle" title="Ubah Tema (Gelap / Terang / Otomatis)">
+          <i class="ph-bold ph-moon-stars"></i>
+        </button>
 
         <button class="btn-icon" id="btn-logout" title="Keluar / Logout" style="color: var(--color-danger); border-color: rgba(239, 68, 68, 0.3);">
           <i class="ph-bold ph-sign-out"></i>

@@ -22,8 +22,16 @@
   
   <!-- Main Stylesheet -->
   <link rel="stylesheet" href="../../css/style.css">
+
+  <!-- Immediate Theme Initializer -->
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('INVENTARIS_THEME') || 'auto';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
 </head>
-<body class="dark-theme">
+<body>
 
   <!-- ================= MAIN APP CONTAINER ================= -->
   <div id="screen-app">
@@ -61,6 +69,11 @@
             <span class="user-role-tag" id="user-role-tag">Toolman (Petugas Utama)</span>
           </div>
         </div>
+
+        <!-- Tombol Switch Tema (Dark/Light/Auto) -->
+        <button class="btn-icon theme-toggle-btn" id="btn-theme-toggle" title="Ubah Tema (Gelap / Terang / Otomatis)">
+          <i class="ph-bold ph-moon-stars"></i>
+        </button>
 
         <button class="btn-icon" id="btn-open-ta-manager" title="Kelola Tahun Ajaran & Migrasi Data (Toolman)">
           <i class="ph-bold ph-calendar-plus"></i>
