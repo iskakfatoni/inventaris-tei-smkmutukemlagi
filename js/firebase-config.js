@@ -63,7 +63,7 @@ class FirebaseInventoryStore {
       {
         id: 'usr-guest',
         name: 'Tamu (Guest)',
-        email: 'guest@smkmutukemlagi.sch.id',
+        email: 'guest',
         username: 'guest',
         role: 'guest',
         roleTitle: 'Guest (Hanya Lihat Data)',
@@ -138,11 +138,11 @@ class FirebaseInventoryStore {
         if (!snapshot.empty) {
           const cloudUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           // Pastikan akun guest default selalu tersedia
-          if (!cloudUsers.some(u => u.role === 'guest' || u.email === 'guest@smkmutukemlagi.sch.id')) {
+          if (!cloudUsers.some(u => u.role === 'guest' || u.username === 'guest' || u.email === 'guest')) {
             cloudUsers.push({
               id: 'usr-guest',
               name: 'Tamu (Guest)',
-              email: 'guest@smkmutukemlagi.sch.id',
+              email: 'guest',
               username: 'guest',
               role: 'guest',
               roleTitle: 'Guest (Hanya Lihat Data)',
@@ -335,14 +335,14 @@ class FirebaseInventoryStore {
     if (!email) return null;
     const cleanEmail = email.trim().toLowerCase();
 
-    // Dukungan login username 'guest' atau format email tamu
-    if (cleanEmail === 'guest' || cleanEmail === 'guest@smkmutukemlagi.sch.id' || cleanEmail === 'guest@gmail.com') {
-      const foundGuest = this.users.find(u => u.role === 'guest' || u.email === 'guest@smkmutukemlagi.sch.id');
+    // Dukungan login username 'guest'
+    if (cleanEmail === 'guest') {
+      const foundGuest = this.users.find(u => u.role === 'guest' || u.username === 'guest' || u.email === 'guest');
       if (foundGuest) return foundGuest;
       return {
         id: 'usr-guest',
         name: 'Tamu (Guest)',
-        email: 'guest@smkmutukemlagi.sch.id',
+        email: 'guest',
         username: 'guest',
         role: 'guest',
         roleTitle: 'Guest (Hanya Lihat Data)',
