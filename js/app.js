@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
+  applyAppTexts();
   initAuthLanding();
   initTahunAjaranManager();
   initExcelImportAndExport();
@@ -57,6 +58,24 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ===================================================
+   0. APPLY CENTRALIZED APP TEXT DICTIONARY
+   =================================================== */
+
+function applyAppTexts() {
+  if (typeof APP_TEXT === 'undefined') return;
+
+  // Placeholder inputs
+  const emailInput = document.getElementById('login-landing-email');
+  if (emailInput) emailInput.placeholder = APP_TEXT.login.emailPlaceholder;
+
+  const passInput = document.getElementById('login-landing-password');
+  if (passInput) passInput.placeholder = APP_TEXT.login.passwordPlaceholder;
+
+  const searchInput = document.getElementById('excel-search-input');
+  if (searchInput) searchInput.placeholder = APP_TEXT.inventoryView.searchPlaceholder;
+}
+
+/* ===================================================
    1. AUTHENTICATION & LOGIN LANDING SCREEN
    =================================================== */
 
@@ -69,7 +88,7 @@ function initAuthLanding() {
 
     const targetUser = OFFICIAL_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
     if (!targetUser) {
-      showToast('Email atau password yang Anda masukkan salah!', 'error');
+      showToast(APP_TEXT.login.errorAuth, 'error');
       return;
     }
 
@@ -80,16 +99,16 @@ function initAuthLanding() {
     if (isValid) {
       sessionStorage.setItem('INVENTARIS_LOGGED_USER', targetUser.email);
       loginAs(targetUser);
-      showToast(`Selamat datang, ${targetUser.name}! (${targetUser.roleTitle})`, 'success');
+      showToast(`${APP_TEXT.login.welcomePrefix}, ${targetUser.name}! (${targetUser.roleTitle})`, 'success');
     } else {
-      showToast('Email atau password yang Anda masukkan salah!', 'error');
+      showToast(APP_TEXT.login.errorAuth, 'error');
     }
   });
 
   const btnLogout = document.getElementById('btn-logout');
   if (btnLogout) {
     btnLogout.addEventListener('click', () => {
-      if (confirm('Apakah Anda yakin ingin keluar dari sistem?')) {
+      if (confirm(APP_TEXT.login.logoutConfirm)) {
         logout();
       }
     });
@@ -111,7 +130,7 @@ function logout() {
   document.getElementById('login-landing-password').value = '';
   document.getElementById('screen-app').style.display = 'none';
   document.getElementById('screen-login').style.display = 'flex';
-  showToast('Anda telah keluar dari sistem.', 'info');
+  showToast(APP_TEXT.login.logoutSuccess, 'info');
 }
 
 /* ===================================================
