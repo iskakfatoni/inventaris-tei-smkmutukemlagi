@@ -14,12 +14,43 @@ const firebaseConfig = {
   appId: "1:18734181774:web:4fb1444a5aa718be8808df"
 };
 
+// 3 Pengguna Resmi dengan Password Default
+const DEFAULT_ACCOUNTS = [
+  {
+    id: 'user-akbar',
+    email: 'akbarhasfi020@gmail.com',
+    name: 'Akbar Rayhan',
+    role: 'toolman',
+    roleTitle: 'Toolman Bengkel TEI (Petugas Utama)',
+    initials: 'AR',
+    password: '12345'
+  },
+  {
+    id: 'user-sutarini',
+    email: 'sutarinirs@gmail.com',
+    name: 'Rahayu Sutarini',
+    role: 'guru',
+    roleTitle: 'Guru Praktik TEI (Pengusul Kebutuhan)',
+    initials: 'RS',
+    password: '12345'
+  },
+  {
+    id: 'user-iskak',
+    email: 'iskakfatoni@gmail.com',
+    name: 'M. Iskak Fatoni',
+    role: 'kajur',
+    roleTitle: 'Kepala Program Keahlian (Kajur) TEI',
+    initials: 'IF',
+    password: '12345'
+  }
+];
+
 class FirebaseInventoryStore {
   constructor() {
     this.firebaseConfig = firebaseConfig;
     this.inventory = [];
     this.proposals = [];
-    this.users = [];
+    this.users = JSON.parse(JSON.stringify(DEFAULT_ACCOUNTS));
     this.tahunAjaranList = [
       { id: 'ta-2026-2027', nama: '2026/2027', isAktif: true, createdAt: '2026-08-01' }
     ];
@@ -42,33 +73,27 @@ class FirebaseInventoryStore {
       // 1. Realtime listener untuk koleksi inventaris
       const invCol = collection(this.db, "inventaris");
       onSnapshot(invCol, (snapshot) => {
-        this.inventory = snapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            tahunAjaran: data.tahunAjaran || '2026/2027',
-            ...data
-          };
-        });
-        this.inventory.sort((a, b) => (a.no || 0) - (b.no || 0));
+        if (!snapshot.empty) {
+          this.inventory = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              tahunAjaran: data.tahunAjaran || '2026/2027',
+              ...data
+            };
+          });
+          this.inventory.sort((a, b) => (a.no || 0) - (b.no || 0));
+        }
         this.isCloudConnected = true;
         this.notifyListeners();
       }, (err) => {
-        console.warn("Firestore inventaris listener error:", err.message);
+        console.warn("Firestore inventaris listener:", err.message);
       });
 
       // 2. Realtime listener untuk koleksi tahun_ajaran
       const taCol = collection(this.db, "tahun_ajaran");
-      onSnapshot(taCol, async (snapshot) => {
-        if (snapshot.empty) {
-          // Inisialisasi tahun ajaran 2026/2027 jika belum ada
-          await setDoc(doc(this.db, "tahun_ajaran", "ta-2026-2027"), {
-            id: 'ta-2026-2027',
-            nama: '2026/2027',
-            isAktif: true,
-            createdAt: new Date().toISOString()
-          });
-        } else {
+      onSnapshot(taCol, (snapshot) => {
+        if (!snapshot.empty) {
           this.tahunAjaranList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           const activeTA = this.tahunAjaranList.find(t => t.isAktif);
           if (activeTA) {
@@ -84,16 +109,18 @@ class FirebaseInventoryStore {
         this.proposals = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         this.notifyListeners();
       }, (err) => {
-        console.warn("Firestore usulan_barang listener error:", err.message);
+        console.warn("Firestore usulan_barang listener:", err.message);
       });
 
       // 4. Realtime listener untuk koleksi users
       const usersCol = collection(this.db, "users");
       onSnapshot(usersCol, (snapshot) => {
-        this.users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        this.notifyListeners();
+        if (!snapshot.empty) {
+          this.users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          this.notifyListeners();
+        }
       }, (err) => {
-        console.warn("Firestore users listener error:", err.message);
+        console.warn("Firestore users listener:", err.message);
       });
 
       this.isCloudConnected = true;
@@ -141,10 +168,9 @@ class FirebaseInventoryStore {
     };
 
     if (this.db) {
-      const { doc, setDoc, collection, updateDoc, getDocs } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+      const { doc, setDoc, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
       
       if (setAsActive) {
-        // Nonaktifkan TA lama jika diset aktif
         for (const ta of this.tahunAjaranList) {
           if (ta.isAktif) {
             await updateDoc(doc(this.db, "tahun_ajaran", ta.id), { isAktif: false });
@@ -172,13 +198,11 @@ class FirebaseInventoryStore {
       throw new Error("Tahun ajaran asal dan tujuan tidak boleh sama!");
     }
 
-    // Ambil semua barang dari tahun ajaran asal
     const sourceItems = this.inventory.filter(i => (i.tahunAjaran || '2026/2027') === sourceYear);
     if (sourceItems.length === 0) {
       throw new Error(`Tidak ada data barang di Tahun Ajaran ${sourceYear} untuk dimigrasikan!`);
     }
 
-    // Cek apakah di targetYear sudah ada data
     const existingTargetItems = this.inventory.filter(i => (i.tahunAjaran || '2026/2027') === targetYear);
     if (existingTargetItems.length > 0) {
       throw new Error(`Tahun Ajaran ${targetYear} sudah memiliki ${existingTargetItems.length} data barang! Migrasi dibatalkan demi keamanan data.`);
@@ -225,13 +249,17 @@ class FirebaseInventoryStore {
   }
 
   getUserByEmail(email) {
-    return this.users.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
+    if (!email) return null;
+    const cleanEmail = email.trim().toLowerCase();
+    return this.users.find(u => u.email && u.email.trim().toLowerCase() === cleanEmail);
   }
 
   verifyPassword(email, passwordInput) {
     const user = this.getUserByEmail(email);
     if (!user) return false;
-    return (user.password || '12345') === passwordInput;
+    const cleanPassInput = (passwordInput || '').trim();
+    const storedPass = (user.password || '12345').trim();
+    return storedPass === cleanPassInput;
   }
 
   async changePassword(email, oldPassword, newPassword) {
@@ -239,14 +267,14 @@ class FirebaseInventoryStore {
     if (!user) {
       throw new Error("Pengguna tidak ditemukan.");
     }
-    if ((user.password || '12345') !== oldPassword) {
+    if ((user.password || '12345').trim() !== (oldPassword || '').trim()) {
       throw new Error("Password lama salah!");
     }
     if (!newPassword || newPassword.length < 5) {
       throw new Error("Password baru minimal 5 karakter!");
     }
 
-    user.password = newPassword;
+    user.password = newPassword.trim();
     user.updatedAt = new Date().toISOString();
 
     if (this.db) {
@@ -254,10 +282,11 @@ class FirebaseInventoryStore {
       await setDoc(doc(this.db, "users", user.id), user, { merge: true });
     }
 
+    this.notifyListeners();
     return true;
   }
 
-  // --- CRUD Inventaris (Berdasarkan Tahun Ajaran Terpilih) ---
+  // --- CRUD Inventaris ---
   getAll(filterTA = null) {
     const targetTA = filterTA || this.activeTahunAjaran || '2026/2027';
     return this.inventory.filter(i => (i.tahunAjaran || '2026/2027') === targetTA);
@@ -365,7 +394,6 @@ class FirebaseInventoryStore {
       await updateDoc(doc(this.db, "usulan_barang", propId), approvalData);
     }
 
-    // Masukkan langsung ke Master Inventaris
     await this.addItem({
       kodeBarang: prop.kodeBarang,
       namaBarang: prop.namaBarang,
