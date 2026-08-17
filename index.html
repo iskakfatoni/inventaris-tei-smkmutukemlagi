@@ -20,6 +20,9 @@
 
   <!-- Phosphor Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <!-- SheetJS Library for Excel Import & Template Export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
   <!-- Main Stylesheet -->
   <link rel="stylesheet" href="style.css">
@@ -159,6 +162,12 @@
             <p class="subtitle">Tabel data mengacu langsung pada struktur format Excel • TA 2026/2027</p>
           </div>
           <div class="action-buttons">
+            <button class="btn btn-secondary btn-toolman-kajur" id="btn-download-template-excel" title="Unduh Template Excel Format 14 Kolom Resmi">
+              <i class="ph-bold ph-file-arrow-down"></i> <span>Template Excel</span>
+            </button>
+            <button class="btn btn-secondary btn-toolman-kajur" id="btn-open-import-excel" title="Import Data Inventaris dari Berkas Excel (.xlsx)">
+              <i class="ph-bold ph-file-arrow-up"></i> <span>Import Excel</span>
+            </button>
             <button class="btn btn-primary" id="btn-main-inventory-action">
               <i class="ph-bold ph-plus"></i> <span id="label-main-action">Tambah Barang</span>
             </button>
@@ -588,6 +597,81 @@
         </p>
         <button type="button" class="btn btn-secondary" id="btn-reset-excel-data" style="width: 100%;">
           <i class="ph-bold ph-arrow-counter-clockwise"></i> Reset Data Kembali ke Isi File Excel Asli
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Import Data Excel -->
+  <div class="modal-overlay" id="modal-import-excel">
+    <div class="modal-card" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3><i class="ph-bold ph-file-arrow-up"></i> Import Data Excel Inventaris</h3>
+        <button class="btn-close-modal" data-close="modal-import-excel"><i class="ph-bold ph-x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div style="background: rgba(6, 182, 212, 0.05); border: 1px solid rgba(6, 182, 212, 0.2); padding: 14px 18px; border-radius: var(--radius-md); margin-bottom: 18px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+            <div>
+              <strong style="color: var(--accent-cyan); font-size: 0.9rem;"><i class="ph-bold ph-info"></i> Format 14 Kolom Excel</strong>
+              <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                Gunakan template resmi 14 kolom agar sinkronisasi data ke Cloud Firestore 100% tepat.
+              </p>
+            </div>
+            <button type="button" class="btn btn-sm btn-secondary" id="btn-modal-download-template">
+              <i class="ph-bold ph-download-simple"></i> Unduh Template Excel (.xlsx)
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Pilih File Excel (.xlsx / .xls / .csv) <span class="required">*</span></label>
+          <input type="file" id="input-excel-file" accept=".xlsx, .xls, .csv" style="padding: 10px; background: var(--bg-input); border: 1px dashed var(--border-color); border-radius: var(--radius-md); width: 100%; cursor: pointer;">
+        </div>
+
+        <!-- Preview Box -->
+        <div id="import-preview-box" style="display: none; margin-top: 14px;">
+          <div class="alert-box alert-success" style="padding: 10px 14px; margin-bottom: 12px;">
+            <i class="ph-fill ph-check-circle"></i>
+            <div class="alert-content">
+              <strong id="import-preview-summary">Terdeteksi 0 Data Barang Siap Di-Import</strong>
+            </div>
+          </div>
+          <div style="max-height: 180px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: rgba(0,0,0,0.2);">
+            <table class="custom-table" style="font-size: 0.78rem;">
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Kode</th>
+                  <th>Nama Barang</th>
+                  <th>Jml</th>
+                  <th>Kondisi</th>
+                  <th>Lokasi</th>
+                </tr>
+              </thead>
+              <tbody id="import-preview-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 16px;">
+          <label>Mode Import untuk Tahun Ajaran Terpilih (<span id="import-target-ta-label" style="color: var(--accent-cyan); font-weight: 600;">2026/2027</span>):</label>
+          <div style="display: flex; gap: 16px; margin-top: 8px; font-size: 0.85rem;">
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+              <input type="radio" name="import-mode" value="append" checked>
+              <span>Tambahkan / Gabungkan ke Data Saat Ini</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+              <input type="radio" name="import-mode" value="replace">
+              <span style="color: var(--color-danger);">Gantikan Seluruh Data TA Saat Ini</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-close="modal-import-excel">Batal</button>
+        <button type="button" class="btn btn-primary" id="btn-execute-import" disabled>
+          <i class="ph-bold ph-floppy-disk"></i> Simpan ke Database Cloud
         </button>
       </div>
     </div>

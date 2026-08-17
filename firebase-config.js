@@ -243,6 +243,55 @@ class FirebaseInventoryStore {
     return sourceItems.length;
   }
 
+  // --- BULK IMPORT EXCEL KE CLOUD FIRESTORE ---
+  async importExcelData(newItems, mode = 'append', targetYear = '2026/2027') {
+    if (!newItems || newItems.length === 0) {
+      throw new Error("Tidak ada data barang yang valid untuk di-import!");
+    }
+
+    if (this.db) {
+      const { collection, addDoc, doc, deleteDoc, getDocs } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+      const invCol = collection(this.db, "inventaris");
+
+      // Jika mode replace: Hapus data barang pada tahun ajaran target terlebih dahulu
+      if (mode === 'replace') {
+        const existingDocs = this.inventory.filter(i => (i.tahunAjaran || '2026/2027') === targetYear);
+        for (const ex of existingDocs) {
+          if (ex.id) {
+            await deleteDoc(doc(this.db, "inventaris", ex.id));
+          }
+        }
+      }
+
+      // Masukkan seluruh item baru
+      let startNo = mode === 'replace' ? 1 : (this.getAll(targetYear).length + 1);
+      for (const item of newItems) {
+        const docData = {
+          no: startNo++,
+          kodeBarang: item.kodeBarang || `TEI-BRG-${String(startNo).padStart(3, '0')}`,
+          namaBarang: item.namaBarang || 'Barang Baru',
+          fotoBarang: item.fotoBarang || '',
+          spesifikasiMerk: item.spesifikasiMerk || '-',
+          jumlah: parseInt(item.jumlah) || 1,
+          satuan: item.satuan || 'Unit',
+          kondisi: item.kondisi || 'Baik',
+          statusPenggunaan: item.statusPenggunaan || 'Digunakan',
+          tahunPerolehan: item.tahunPerolehan || new Date().getFullYear().toString(),
+          sumberDana: item.sumberDana || 'Dana sekolah',
+          lokasiRak: item.lokasiRak || 'Lemari 1',
+          tglCekTerakhir: item.tglCekTerakhir || new Date().toISOString().split('T')[0],
+          keterangan: item.keterangan || '-',
+          tahunAjaran: targetYear,
+          importedAt: new Date().toISOString()
+        };
+
+        await addDoc(invCol, docData);
+      }
+    }
+
+    return newItems.length;
+  }
+
   // --- Auth & User Password Management ---
   getUsers() {
     return this.users;

@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   initAuthLanding();
   initTahunAjaranManager();
+  initExcelImportAndExport();
   initNavigation();
   initModals();
   initForms();
@@ -224,6 +225,265 @@ function renderTahunAjaranDropdowns() {
   }
 }
 
+/* ===================================================
+   3. EXCEL IMPORT & TEMPLATE DOWNLOAD (TOOLMAN & KAJUR)
+   =================================================== */
+
+let parsedExcelItems = [];
+
+function initExcelImportAndExport() {
+  // Tombol Unduh Template Excel
+  const btnDownloadTemplate = document.getElementById('btn-download-template-excel');
+  const btnModalDownloadTemplate = document.getElementById('btn-modal-download-template');
+  
+  if (btnDownloadTemplate) btnDownloadTemplate.addEventListener('click', downloadExcelTemplate);
+  if (btnModalDownloadTemplate) btnModalDownloadTemplate.addEventListener('click', downloadExcelTemplate);
+
+  // Tombol Buka Modal Import Excel
+  const btnOpenImport = document.getElementById('btn-open-import-excel');
+  if (btnOpenImport) {
+    btnOpenImport.addEventListener('click', () => {
+      if (currentUser.role === 'guru') {
+        showToast('Hanya Toolman dan Kajur yang berwenang melakukan import Excel', 'error');
+        return;
+      }
+      parsedExcelItems = [];
+      const inputFile = document.getElementById('input-excel-file');
+      if (inputFile) inputFile.value = '';
+      document.getElementById('import-preview-box').style.display = 'none';
+      document.getElementById('btn-execute-import').disabled = true;
+      document.getElementById('import-target-ta-label').textContent = window.db.getActiveTahunAjaran();
+      openModal('modal-import-excel');
+    });
+  }
+
+  // Event saat memilih file Excel
+  const inputFile = document.getElementById('input-excel-file');
+  if (inputFile) {
+    inputFile.addEventListener('change', handleExcelFileSelect);
+  }
+
+  // Tombol Eksekusi Import
+  const btnExecute = document.getElementById('btn-execute-import');
+  if (btnExecute) {
+    btnExecute.addEventListener('click', async () => {
+      if (parsedExcelItems.length === 0) {
+        showToast('Tidak ada data barang yang valid untuk di-import!', 'error');
+        return;
+      }
+
+      const activeTA = window.db.getActiveTahunAjaran();
+      const mode = document.querySelector('input[name="import-mode"]:checked').value;
+      const modeText = mode === 'replace' ? 'MENGGANTIKAN seluruh' : 'MENAMBAHKAN ke';
+
+      if (confirm(`Apakah Anda yakin ingin ${modeText} data barang di TA ${activeTA} dengan ${parsedExcelItems.length} item dari Excel?`)) {
+        btnExecute.disabled = true;
+        btnExecute.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i> Menyimpan...';
+
+        try {
+          const totalImported = await window.db.importExcelData(parsedExcelItems, mode, activeTA);
+          showToast(`Berhasil meng-import ${totalImported} barang ke TA ${activeTA}!`, 'success');
+          closeModal('modal-import-excel');
+          refreshAll();
+        } catch (err) {
+          showToast(err.message, 'error');
+        } finally {
+          btnExecute.disabled = false;
+          btnExecute.innerHTML = '<i class="ph-bold ph-floppy-disk"></i> Simpan ke Database Cloud';
+        }
+      }
+    });
+  }
+}
+
+// Generator Unduh Template Excel Resmi (.xlsx)
+function downloadExcelTemplate() {
+  if (typeof XLSX === 'undefined') {
+    showToast('Library SheetJS sedang dimuat, silakan coba 2 detik lagi...', 'info');
+    return;
+  }
+
+  // 14 Kolom Resmi sesuai format Inventaris_Lab_TEI.xlsx
+  const templateData = [
+    {
+      "No": 1,
+      "Kode Barang": "TEI-ARD-002",
+      "Nama Barang / Alat": "Arduino Uno R3",
+      "Foto Barang": "",
+      "Spesifikasi / Merk": "Original / ATmega328P",
+      "Jumlah": 12,
+      "Satuan": "Unit",
+      "Kondisi": "Baik",
+      "Status Penggunaan": "Digunakan",
+      "Tahun Perolehan": "2026",
+      "Sumber Dana": "Dana sekolah",
+      "Lokasi / Rak": "Lemari 1",
+      "Tgl. Cek Terakhir": "2026-08-05",
+      "Keterangan": "Untuk Praktek SKE"
+    },
+    {
+      "No": 2,
+      "Kode Barang": "TEI-TRN-001",
+      "Nama Barang / Alat": "Project Board / Trainer Kit",
+      "Foto Barang": "",
+      "Spesifikasi / Merk": "-",
+      "Jumlah": 19,
+      "Satuan": "Unit",
+      "Kondisi": "Baik",
+      "Status Penggunaan": "Digunakan",
+      "Tahun Perolehan": "2026",
+      "Sumber Dana": "Dana sekolah",
+      "Lokasi / Rak": "Etalase A",
+      "Tgl. Cek Terakhir": "2026-08-05",
+      "Keterangan": "Untuk Praktek SKE"
+    },
+    {
+      "No": 3,
+      "Kode Barang": "TEI-SLD-003",
+      "Nama Barang / Alat": "Solder Listrik",
+      "Foto Barang": "",
+      "Spesifikasi / Merk": "Dekko 40W",
+      "Jumlah": 17,
+      "Satuan": "Unit",
+      "Kondisi": "Rusak Ringan",
+      "Status Penggunaan": "Dalam Perbaikan",
+      "Tahun Perolehan": "2026",
+      "Sumber Dana": "Dana BOS",
+      "Lokasi / Rak": "Kontener box kecil",
+      "Tgl. Cek Terakhir": "2026-08-05",
+      "Keterangan": "Perlu ganti mata solder"
+    }
+  ];
+
+  const ws = XLSX.utils.json_to_sheet(templateData);
+
+  // Atur lebar kolom (column width) agar rapi saat dibuka di Microsoft Excel
+  ws['!cols'] = [
+    { wch: 6 },  // No
+    { wch: 16 }, // Kode Barang
+    { wch: 30 }, // Nama Barang
+    { wch: 12 }, // Foto Barang
+    { wch: 26 }, // Spesifikasi / Merk
+    { wch: 10 }, // Jumlah
+    { wch: 10 }, // Satuan
+    { wch: 15 }, // Kondisi
+    { wch: 18 }, // Status Penggunaan
+    { wch: 16 }, // Tahun Perolehan
+    { wch: 16 }, // Sumber Dana
+    { wch: 20 }, // Lokasi / Rak
+    { wch: 16 }, // Tgl Cek Terakhir
+    { wch: 30 }  // Keterangan
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Inventaris_TEI");
+  XLSX.writeFile(wb, "Template_Inventaris_TEI_SMKMUTU.xlsx");
+  showToast("Template Excel 14 kolom berhasil diunduh!", "success");
+}
+
+// Parser File Excel
+function handleExcelFileSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    try {
+      const data = new Uint8Array(evt.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      const rawRows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+      if (rawRows.length === 0) {
+        showToast('File Excel kosong!', 'error');
+        return;
+      }
+
+      parsedExcelItems = [];
+      rawRows.forEach((row, idx) => {
+        // Pemetaan fleksibel kolom Excel ke model inventaris
+        const nama = row['Nama Barang / Alat'] || row['Nama Barang'] || row['Nama Alat'] || row['namaBarang'] || '';
+        if (!nama) return; // Lewati baris tanpa nama barang
+
+        const kode = row['Kode Barang'] || row['Kode'] || row['kodeBarang'] || `TEI-ITM-${String(idx + 1).padStart(3, '0')}`;
+        const spesifikasi = row['Spesifikasi / Merk'] || row['Spesifikasi'] || row['Merk'] || row['spesifikasiMerk'] || '-';
+        const jumlah = parseInt(row['Jumlah'] || row['Qty'] || row['jumlah'] || 1) || 1;
+        const satuan = row['Satuan'] || row['satuan'] || 'Unit';
+        const kondisi = row['Kondisi'] || row['kondisi'] || 'Baik';
+        const status = row['Status Penggunaan'] || row['Status'] || row['statusPenggunaan'] || 'Digunakan';
+        const tahun = String(row['Tahun Perolehan'] || row['Tahun'] || row['tahunPerolehan'] || new Date().getFullYear());
+        const dana = row['Sumber Dana'] || row['sumberDana'] || 'Dana sekolah';
+        const lokasi = row['Lokasi / Rak'] || row['Lokasi'] || row['Rak'] || row['lokasiRak'] || 'Lemari 1';
+        const tglCek = row['Tgl. Cek Terakhir'] || row['Tgl Cek'] || row['tglCekTerakhir'] || new Date().toISOString().split('T')[0];
+        const keterangan = row['Keterangan'] || row['keterangan'] || '-';
+
+        parsedExcelItems.push({
+          no: idx + 1,
+          kodeBarang: kode,
+          namaBarang: nama,
+          fotoBarang: '',
+          spesifikasiMerk: spesifikasi,
+          jumlah: jumlah,
+          satuan: satuan,
+          kondisi: kondisi,
+          statusPenggunaan: status,
+          tahunPerolehan: tahun,
+          sumberDana: dana,
+          lokasiRak: lokasi,
+          tglCekTerakhir: tglCek,
+          keterangan: keterangan
+        });
+      });
+
+      if (parsedExcelItems.length === 0) {
+        showToast('Tidak ada data barang yang dapat dibaca. Pastikan terdapat kolom "Nama Barang / Alat".', 'error');
+        return;
+      }
+
+      // Tampilkan Preview Box
+      const previewBox = document.getElementById('import-preview-box');
+      const summaryText = document.getElementById('import-preview-summary');
+      const previewTbody = document.getElementById('import-preview-tbody');
+      const btnExecute = document.getElementById('btn-execute-import');
+
+      summaryText.textContent = `Terdeteksi ${parsedExcelItems.length} Data Barang Siap Di-Import`;
+      previewTbody.innerHTML = '';
+
+      parsedExcelItems.slice(0, 15).forEach(item => {
+        previewTbody.innerHTML += `
+          <tr>
+            <td>${item.no}</td>
+            <td><code>${item.kodeBarang}</code></td>
+            <td><strong>${item.namaBarang}</strong></td>
+            <td>${item.jumlah} ${item.satuan}</td>
+            <td><span class="badge badge-condition-baik">${item.kondisi}</span></td>
+            <td>${item.lokasiRak}</td>
+          </tr>
+        `;
+      });
+
+      if (parsedExcelItems.length > 15) {
+        previewTbody.innerHTML += `
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--text-dim);">... dan ${parsedExcelItems.length - 15} data barang lainnya</td>
+          </tr>
+        `;
+      }
+
+      previewBox.style.display = 'block';
+      btnExecute.disabled = false;
+      showToast(`Berhasil membaca ${parsedExcelItems.length} barang dari file Excel!`, 'success');
+
+    } catch (err) {
+      console.error(err);
+      showToast('Gagal memproses file Excel: ' + err.message, 'error');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
 function updateRoleUI() {
   if (!currentUser) return;
   const avatar = document.getElementById('user-avatar');
@@ -236,16 +496,20 @@ function updateRoleUI() {
   if (name) name.textContent = currentUser.name;
   if (tag) tag.textContent = currentUser.roleTitle;
 
+  const isToolmanOrKajur = currentUser.role === 'toolman' || currentUser.role === 'kajur';
+
+  // Sembunyikan tombol kelola TA untuk Guru
   const btnTAManager = document.getElementById('btn-open-ta-manager');
   if (btnTAManager) {
-    if (currentUser.role === 'guru') {
-      btnTAManager.style.display = 'none';
-    } else {
-      btnTAManager.style.display = 'inline-flex';
-    }
+    btnTAManager.style.display = isToolmanOrKajur ? 'inline-flex' : 'none';
   }
 
-  if (currentUser.role === 'toolman' || currentUser.role === 'kajur') {
+  // Sembunyikan tombol Template & Import Excel untuk Guru
+  document.querySelectorAll('.btn-toolman-kajur').forEach(btn => {
+    btn.style.display = isToolmanOrKajur ? 'inline-flex' : 'none';
+  });
+
+  if (isToolmanOrKajur) {
     if (actionLabel) actionLabel.textContent = 'Tambah Barang Master';
     if (actionBtn) {
       actionBtn.style.display = 'inline-flex';
