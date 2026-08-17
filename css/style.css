@@ -109,17 +109,30 @@ body {
 }
 
 .login-logo-icon {
-  width: 56px;
-  height: 56px;
-  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
-  border-radius: var(--radius-lg);
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  padding: 5px;
+  border: 3px solid rgba(6, 182, 212, 0.6);
+  background: radial-gradient(circle, rgba(15, 23, 42, 0.95) 0%, rgba(6, 182, 212, 0.18) 100%);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.8rem;
-  color: #0B0F17;
-  margin-bottom: 12px;
-  box-shadow: 0 8px 24px rgba(6, 182, 212, 0.3);
+  margin-bottom: 16px;
+  box-shadow: 0 0 28px rgba(6, 182, 212, 0.45), inset 0 0 14px rgba(6, 182, 212, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.login-logo-icon:hover {
+  transform: scale(1.04);
+  box-shadow: 0 0 36px rgba(6, 182, 212, 0.6), inset 0 0 18px rgba(6, 182, 212, 0.3);
+}
+
+.login-logo-icon img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: contain;
 }
 
 .login-header h2 {
@@ -186,16 +199,28 @@ body {
 }
 
 .logo-icon {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-indigo));
-  border-radius: var(--radius-md);
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  padding: 3px;
+  border: 2px solid rgba(6, 182, 212, 0.7);
+  background: radial-gradient(circle, rgba(15, 23, 42, 0.9), rgba(6, 182, 212, 0.2));
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  color: #fff;
-  box-shadow: var(--glow-cyan);
+  box-shadow: 0 0 14px rgba(6, 182, 212, 0.35);
+  transition: transform 0.25s ease;
+}
+
+.logo-icon:hover {
+  transform: scale(1.06);
+}
+
+.logo-icon img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: contain;
 }
 
 .brand-text h1 {
