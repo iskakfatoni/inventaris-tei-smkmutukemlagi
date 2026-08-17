@@ -12,54 +12,12 @@ const firebaseConfig = {
   storageBucket: "inventaris-tei-smkmutu.firebasestorage.app",
   messagingSenderId: "18734181774",
   appId: "1:18734181774:web:4fb1444a5aa718be8808df"
-};
-
-// 3 Pengguna Resmi dengan Password Default
-const DEFAULT_ACCOUNTS = [
-  {
-    id: 'user-akbar',
-    email: 'akbarhasfi020@gmail.com',
-    name: 'Akbar Rayhan',
-    role: 'toolman',
-    roleTitle: 'Toolman Bengkel TEI (Petugas Utama)',
-    initials: 'AR',
-    password: '12345'
-  },
-  {
-    id: 'user-sutarini',
-    email: 'sutarinirs@gmail.com',
-    name: 'Rahayu Sutarini',
-    role: 'guru',
-    roleTitle: 'Guru Praktik TEI (Pengusul Kebutuhan)',
-    initials: 'RS',
-    password: '12345'
-  },
-  {
-    id: 'user-rizky',
-    email: 'zkypra704@gmail.com',
-    name: 'Rizky Prayoga',
-    role: 'guru',
-    roleTitle: 'Guru Praktik TEI (Pengusul Kebutuhan)',
-    initials: 'RP',
-    password: '12345'
-  },
-  {
-    id: 'user-iskak',
-    email: 'iskakfatoni@gmail.com',
-    name: 'M. Iskak Fatoni',
-    role: 'kajur',
-    roleTitle: 'Kepala Program Keahlian (Kajur) TEI',
-    initials: 'IF',
-    password: '12345'
-  }
-];
-
 class FirebaseInventoryStore {
   constructor() {
     this.firebaseConfig = firebaseConfig;
     this.inventory = [];
     this.proposals = [];
-    this.users = JSON.parse(JSON.stringify(DEFAULT_ACCOUNTS));
+    this.users = [];
     this.tahunAjaranList = [
       { id: 'ta-2026-2027', nama: '2026/2027', isAktif: true, createdAt: '2026-08-01' }
     ];

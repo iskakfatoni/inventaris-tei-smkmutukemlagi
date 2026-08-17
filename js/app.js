@@ -1,33 +1,4 @@
-const OFFICIAL_USERS = [
-  {
-    email: 'akbarhasfi020@gmail.com',
-    name: 'Akbar Rayhan',
-    role: 'toolman',
-    roleTitle: 'Toolman Bengkel TEI (Petugas Utama)',
-    initials: 'AR'
-  },
-  {
-    email: 'sutarinirs@gmail.com',
-    name: 'Rahayu Sutarini',
-    role: 'guru',
-    roleTitle: 'Guru Praktik TEI (Pengusul Kebutuhan)',
-    initials: 'RS'
-  },
-  {
-    email: 'zkypra704@gmail.com',
-    name: 'Rizky Prayoga',
-    role: 'guru',
-    roleTitle: 'Guru Praktik TEI (Pengusul Kebutuhan)',
-    initials: 'RP'
-  },
-  {
-    email: 'iskakfatoni@gmail.com',
-    name: 'M. Iskak Fatoni',
-    role: 'kajur',
-    roleTitle: 'Kepala Program Keahlian (Kajur) TEI',
-    initials: 'IF'
-  }
-];
+let currentUser = null; // Disimpan saat login aktif
 
 const isLoginPage = document.getElementById('screen-login') !== null;
 const isDashboardPage = document.getElementById('screen-app') !== null;
@@ -44,29 +15,24 @@ document.addEventListener('DOMContentLoaded', () => {
   if (isLoginPage) {
     initAuthLanding();
     if (savedSessionEmail) {
-      const user = OFFICIAL_USERS.find(u => u.email === savedSessionEmail);
-      if (user) {
-        window.location.href = 'asset/page/dashboard.html';
-      }
+      window.location.href = 'asset/page/dashboard.html';
     }
   }
 
   // --- 2. JIKA DI HALAMAN DASHBOARD (asset/page/dashboard.html) ---
   if (isDashboardPage) {
     if (!savedSessionEmail) {
-      // Auth Guard: Tendang kembali ke login jika belum ada sesi login
       window.location.href = '../../index.html';
       return;
     }
 
-    const user = OFFICIAL_USERS.find(u => u.email === savedSessionEmail);
-    if (!user) {
-      sessionStorage.removeItem('INVENTARIS_LOGGED_USER');
-      window.location.href = '../../index.html';
-      return;
+    const savedUserJson = sessionStorage.getItem('INVENTARIS_LOGGED_USER_DATA');
+    if (savedUserJson) {
+      try {
+        currentUser = JSON.parse(savedUserJson);
+      } catch (e) {}
     }
 
-    currentUser = user;
     initTahunAjaranManager();
     initExcelImportAndExport();
     initNavigation();
@@ -81,10 +47,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Realtime Cloud Firestore sync listener
     if (window.db && typeof window.db.subscribe === 'function') {
       window.db.subscribe(() => {
-        if (currentUser) {
-          renderTahunAjaranDropdowns();
-          refreshAll();
+        // Sinkronisasi data profil pengguna terkini dari Cloud Firestore
+        const liveUser = window.db.getUserByEmail(savedSessionEmail);
+        if (liveUser) {
+          currentUser = liveUser;
+          sessionStorage.setItem('INVENTARIS_LOGGED_USER_DATA', JSON.stringify(liveUser));
+          updateRoleUI();
         }
+        renderTahunAjaranDropdowns();
+        refreshAll();
       });
     }
   }
@@ -115,23 +86,21 @@ function initAuthLanding() {
   const formLogin = document.getElementById('form-login-landing');
   if (!formLogin) return;
 
-  formLogin.addEventListener('submit', (e) => {
+  formLogin.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('login-landing-email').value.trim();
     const password = document.getElementById('login-landing-password').value.trim();
 
-    const targetUser = OFFICIAL_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
+    const targetUser = window.db.getUserByEmail(email);
     if (!targetUser) {
       showToast(APP_TEXT.login.errorAuth, 'error');
       return;
     }
 
-    const userInDb = window.db.getUserByEmail(email);
-    const expectedPass = userInDb ? (userInDb.password || '12345') : '12345';
-    const isValid = (password === expectedPass) || window.db.verifyPassword(email, password);
-
+    const isValid = window.db.verifyPassword(email, password);
     if (isValid) {
       sessionStorage.setItem('INVENTARIS_LOGGED_USER', targetUser.email);
+      sessionStorage.setItem('INVENTARIS_LOGGED_USER_DATA', JSON.stringify(targetUser));
       showToast(`${APP_TEXT.login.welcomePrefix}, ${targetUser.name}! (${targetUser.roleTitle})`, 'success');
       setTimeout(() => {
         window.location.href = 'asset/page/dashboard.html';
@@ -148,6 +117,7 @@ function initDashboardLogout() {
     btnLogout.addEventListener('click', () => {
       if (confirm(APP_TEXT.login.logoutConfirm)) {
         sessionStorage.removeItem('INVENTARIS_LOGGED_USER');
+        sessionStorage.removeItem('INVENTARIS_LOGGED_USER_DATA');
         window.location.href = '../../index.html';
       }
     });
