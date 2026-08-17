@@ -30,10 +30,9 @@ inventaris-tei-smk-mutu-kemlagi/
 ├── css/
 │   └── style.css                    <-- Stylesheet, dark mode & full-width desktop
 ├── js/
+│   ├── app-text.js                  <-- Kamus seluruh teks, judul, dan pesan sistem
 │   ├── firebase-config.js           <-- Adapter Cloud Firestore & real-time store
 │   └── app.js                       <-- Logika UI, import/export Excel & RBAC
-├── data/
-│   └── Inventaris_Lab_TEI.xlsx      <-- Berkas Excel data awal
 ├── docs/
 │   └── ATURAN_PENGGUNA.md           <-- Dokumentasi RBAC & SOP hak akses pengguna
 ├── src/
