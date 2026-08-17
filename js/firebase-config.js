@@ -79,14 +79,45 @@ class FirebaseInventoryStore {
         console.warn("Firestore usulan_barang listener:", err.message);
       });
 
-      // 4. Realtime listener untuk koleksi users (murni 100% dari Cloud Firestore)
+      // 4. Realtime listener untuk koleksi users
       const usersCol = collection(this.db, "users");
-      onSnapshot(usersCol, (snapshot) => {
+      onSnapshot(usersCol, async (snapshot) => {
         if (!snapshot.empty) {
-          this.users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          this.users = docs;
+
+          // Otomatis sinkronisasi dokumen guest ke Cloud Firestore jika belum ada
+          if (!docs.some(u => u.role === 'guest' || u.username === 'guest' || u.email === 'guest')) {
+            try {
+              const guestDoc = {
+                name: 'Tamu (Guest)',
+                email: 'guest',
+                username: 'guest',
+                role: 'guest',
+                roleTitle: 'Guest (Hanya Lihat Data)',
+                initials: 'GT',
+                password: '123',
+                createdAt: new Date().toISOString()
+              };
+              await setDoc(doc(this.db, "users", "usr-guest"), guestDoc, { merge: true });
+            } catch (e) {}
+          }
           this.notifyListeners();
         } else {
-          this.users = [];
+          try {
+            const guestDoc = {
+              name: 'Tamu (Guest)',
+              email: 'guest',
+              username: 'guest',
+              role: 'guest',
+              roleTitle: 'Guest (Hanya Lihat Data)',
+              initials: 'GT',
+              password: '123',
+              createdAt: new Date().toISOString()
+            };
+            this.users = [{ id: 'usr-guest', ...guestDoc }];
+            await setDoc(doc(this.db, "users", "usr-guest"), guestDoc, { merge: true });
+          } catch (e) {}
           this.notifyListeners();
         }
       }, (err) => {
@@ -270,18 +301,38 @@ class FirebaseInventoryStore {
   getUserByEmail(email) {
     if (!email) return null;
     const clean = email.trim().toLowerCase();
-    return this.users.find(u => 
+
+    // 1. Cari pengguna pada koleksi Firestore yang terload
+    const found = this.users.find(u => 
       (u.email && u.email.trim().toLowerCase() === clean) ||
       (u.username && u.username.trim().toLowerCase() === clean) ||
       (u.id && u.id.trim().toLowerCase() === clean)
     );
+    if (found) return found;
+
+    // 2. Akun Guest Standar (jika input 'guest' atau 'guets')
+    if (clean === 'guest' || clean === 'guets') {
+      return {
+        id: 'usr-guest',
+        name: 'Tamu (Guest)',
+        email: 'guest',
+        username: 'guest',
+        role: 'guest',
+        roleTitle: 'Guest (Hanya Lihat Data)',
+        initials: 'GT',
+        password: '123'
+      };
+    }
+
+    return null;
   }
 
   verifyPassword(email, passwordInput) {
     const user = this.getUserByEmail(email);
     if (!user) return false;
     const cleanPassInput = (passwordInput || '').trim();
-    const storedPass = (user.password || '').trim();
+    const defaultPass = user.role === 'guest' ? '123' : '12345';
+    const storedPass = (user.password || defaultPass).trim();
     return storedPass === cleanPassInput;
   }
 
