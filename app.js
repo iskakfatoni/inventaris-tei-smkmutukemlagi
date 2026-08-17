@@ -245,15 +245,18 @@ function updateRoleUI() {
     }
   }
 
-  if (currentUser.role === 'toolman') {
+  if (currentUser.role === 'toolman' || currentUser.role === 'kajur') {
     if (actionLabel) actionLabel.textContent = 'Tambah Barang Master';
-    if (actionBtn) actionBtn.onclick = () => openItemModal();
+    if (actionBtn) {
+      actionBtn.style.display = 'inline-flex';
+      actionBtn.onclick = () => openItemModal();
+    }
   } else if (currentUser.role === 'guru') {
     if (actionLabel) actionLabel.textContent = 'Ajukan Barang Baru';
-    if (actionBtn) actionBtn.onclick = () => openProposalModal();
-  } else if (currentUser.role === 'kajur') {
-    if (actionLabel) actionLabel.textContent = 'Lihat Rekapitulasi';
-    if (actionBtn) actionBtn.onclick = () => switchView('rekap');
+    if (actionBtn) {
+      actionBtn.style.display = 'inline-flex';
+      actionBtn.onclick = () => openProposalModal();
+    }
   }
 }
 
