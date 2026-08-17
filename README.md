@@ -1,28 +1,49 @@
 # Inventaris TEI SMK MUTU KEMLAGI
 
-Aplikasi Sistem Informasi Manajemen Inventaris Alat, Trainer Kit, dan Komponen Praktikum untuk **Jurusan Teknik Elektronika Industri (TEI) - SMK MUTU KEMLAGI**.
+Sistem Informasi Manajemen Inventaris Alat, Trainer Kit, dan Komponen Praktikum berbasis Cloud Real-Time untuk **Jurusan Teknik Elektronika Industri (TEI) - SMK Muhammadiyah 1 Kemlagi (SMK MUTU KEMLAGI)**.
+
+🌐 **Website Resmi:** [https://iskakfatoni.github.io/inventaris-tei-smkmutukemlagi/](https://iskakfatoni.github.io/inventaris-tei-smkmutukemlagi/)
 
 ---
 
-## 🔑 Kredensial Login Pengguna (Email & Kode Akses)
+## 👥 Akun Pengguna Resmi
 
-| Role | Email Login | Kode Akses Default |
-| :--- | :--- | :---: |
-| **Toolman Bengkel TEI** | `toolman@smkmutukemlagi.sch.id` | `toolman123` |
-| **Guru Praktik TEI** | `guru.tei@smkmutukemlagi.sch.id` | `guru123` |
-| **Kepala Jurusan (Kajur)** | `kajur.tei@smkmutukemlagi.sch.id` | `kajur123` |
+| Role | Nama Pengguna | Email Login | Password Default |
+| :--- | :--- | :--- | :---: |
+| **Toolman (Petugas Utama)** | Akbar Rayhan | `akbarhasfi020@gmail.com` | `12345` |
+| **Guru Praktik (Pengusul)** | Rahayu Sutarini | `sutarinirs@gmail.com` | `12345` |
+| **Kepala Jurusan (Supervisi)** | M. Iskak Fatoni | `iskakfatoni@gmail.com` | `12345` |
+
+> 📖 Detail matriks hak akses & SOP lengkap dapat dilihat di [**docs/ATURAN_PENGGUNA.md**](docs/ATURAN_PENGGUNA.md).
 
 ---
 
-## 📂 Struktur Berkas
+## 📂 Struktur Direktori Project
 
-```
+```text
 inventaris-tei-smk-mutu-kemlagi/
-├── index.html            # Antarmuka SPA (Dashboard, Katalog, Usulan & Approval, QR Tag, Log)
-├── style.css             # Tema Industrial Dark & Glassmorphism
-├── firebase-config.js    # Data Store & Adapter Otentikasi Email / Kode Akses
-├── app.js                # Logika Aplikasi, Alur Usulan & Approval
-├── firestore.rules       # Aturan Keamanan Database Cloud Firestore
-├── ATURAN_PENGGUNA.md    # Matriks Hak Akses & SOP Pengguna
-└── README.md             # Dokumentasi Project
+├── asset/
+│   ├── app/
+│   │   ├── Inventaris_TEI.exe       <-- Aplikasi desktop Windows standalone
+│   │   └── app_url.txt              <-- Konfigurasi target URL online
+│   └── image/                       <-- Tempat penyimpanan berkas gambar/foto
+├── css/
+│   └── style.css                    <-- Stylesheet, dark mode & full-width desktop
+├── js/
+│   ├── firebase-config.js           <-- Adapter Cloud Firestore & real-time store
+│   └── app.js                       <-- Logika UI, import/export Excel & RBAC
+├── data/
+│   └── Inventaris_Lab_TEI.xlsx      <-- Berkas Excel data awal
+├── docs/
+│   └── ATURAN_PENGGUNA.md           <-- Dokumentasi RBAC & SOP hak akses pengguna
+├── src/
+│   └── Launcher.cs                  <-- Source code C# Windows Desktop Launcher
+│
+│   # Berkas Wajib di Root
+├── index.html                       <-- Entry point halaman utama
+├── manifest.json                    <-- PWA Web App Manifest
+├── sw.js                            <-- Service Worker PWA
+├── firebase.json                    <-- Konfigurasi Firebase CLI
+├── firestore.rules                  <-- Aturan keamanan Cloud Firestore
+└── README.md                        <-- Dokumentasi Utama Repository
 ```
