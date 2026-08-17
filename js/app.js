@@ -864,8 +864,11 @@ function renderProposalsTable() {
    =================================================== */
 
 function initModals() {
-  document.getElementById('btn-open-rbac-guide').addEventListener('click', () => openModal('modal-rbac-info'));
-  document.getElementById('btn-open-settings').addEventListener('click', () => openModal('modal-settings'));
+  const btnRbac = document.getElementById('btn-open-rbac-guide');
+  if (btnRbac) btnRbac.addEventListener('click', () => openModal('modal-rbac-info'));
+
+  const btnSettings = document.getElementById('btn-open-settings');
+  if (btnSettings) btnSettings.addEventListener('click', () => openModal('modal-settings'));
 
   document.querySelectorAll('[data-close]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -876,164 +879,202 @@ function initModals() {
 }
 
 function openModal(id) {
-  document.getElementById(id).classList.add('active');
+  const modal = document.getElementById(id);
+  if (modal) modal.classList.add('active');
 }
 
 function closeModal(id) {
-  document.getElementById(id).classList.remove('active');
+  const modal = document.getElementById(id);
+  if (modal) modal.classList.remove('active');
 }
+
+let activeReviewPropId = null;
 
 function initForms() {
   // Form Master Item (Toolman sebagai Petugas Utama)
-  document.getElementById('form-item').addEventListener('submit', (e) => {
-    e.preventDefault();
-    if (currentUser.role === 'guru') {
-      showToast('Guru hanya dapat mengajukan usulan pengadaan barang', 'info');
+  const formItem = document.getElementById('form-item');
+  if (formItem) {
+    formItem.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (currentUser && currentUser.role === 'guru') {
+        showToast('Guru hanya dapat mengajukan usulan pengadaan barang', 'info');
+        closeModal('modal-item');
+        openProposalModal();
+        return;
+      }
+
+      const editIdEl = document.getElementById('form-item-id') || document.getElementById('item-id');
+      const editId = editIdEl ? editIdEl.value : '';
+
+      const getVal = (id1, id2) => {
+        const el = document.getElementById(id1) || document.getElementById(id2);
+        return el ? el.value.trim() : '';
+      };
+
+      const payload = {
+        kodeBarang: getVal('item-kode', 'form-kode'),
+        namaBarang: getVal('item-nama', 'form-nama'),
+        spesifikasiMerk: getVal('item-spesifikasi', 'form-spek') || '-',
+        jumlah: parseInt(getVal('item-jumlah', 'form-jumlah')) || 1,
+        satuan: getVal('item-satuan', 'form-satuan') || 'Unit',
+        kondisi: getVal('item-kondisi', 'form-kondisi') || 'Baik',
+        statusPenggunaan: getVal('item-status', 'form-status') || 'Digunakan',
+        tahunPerolehan: getVal('item-tahun', 'form-tahun') || new Date().getFullYear().toString(),
+        sumberDana: getVal('item-dana', 'form-dana') || 'Dana sekolah',
+        lokasiRak: getVal('item-lokasi', 'form-lokasi') || 'Lemari 1',
+        tglCekTerakhir: getVal('item-tgl-cek', 'form-tgl-cek') || new Date().toISOString().split('T')[0],
+        keterangan: getVal('item-keterangan', 'form-keterangan') || '-'
+      };
+
+      if (editId) {
+        await window.db.updateItem(editId, payload);
+        showToast(`Data "${payload.namaBarang}" berhasil diperbarui!`, 'success');
+      } else {
+        await window.db.addItem(payload);
+        showToast(`Barang baru "${payload.namaBarang}" berhasil ditambahkan!`, 'success');
+      }
+
       closeModal('modal-item');
-      openProposalModal();
-      return;
-    }
-
-    const editId = document.getElementById('form-item-id').value;
-    const payload = {
-      kodeBarang: document.getElementById('form-kode').value.trim(),
-      namaBarang: document.getElementById('form-nama').value.trim(),
-      spesifikasiMerk: document.getElementById('form-spek').value.trim() || '-',
-      jumlah: parseInt(document.getElementById('form-jumlah').value) || 1,
-      satuan: document.getElementById('form-satuan').value.trim() || 'Unit',
-      kondisi: document.getElementById('form-kondisi').value,
-      statusPenggunaan: document.getElementById('form-status').value,
-      tahunPerolehan: document.getElementById('form-tahun').value.trim() || '2026',
-      sumberDana: document.getElementById('form-dana').value.trim() || 'Dana sekolah',
-      lokasiRak: document.getElementById('form-lokasi').value.trim(),
-      tglCekTerakhir: document.getElementById('form-tgl-cek').value || new Date().toISOString().split('T')[0],
-      keterangan: document.getElementById('form-keterangan').value.trim() || '-'
-    };
-
-    if (editId) {
-      window.db.updateItem(editId, payload);
-      showToast(`Data "${payload.namaBarang}" berhasil diperbarui oleh ${currentUser.name}`, 'success');
-    } else {
-      window.db.addItem(payload);
-      showToast(`Barang baru "${payload.namaBarang}" berhasil ditambahkan oleh ${currentUser.name}`, 'success');
-    }
-
-    closeModal('modal-item');
-    refreshAll();
-  });
+      refreshAll();
+    });
+  }
 
   // Form Proposal (Usulan Guru)
-  document.getElementById('form-proposal').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const payload = {
-      kodeBarang: document.getElementById('prop-kode').value.trim(),
-      namaBarang: document.getElementById('prop-nama').value.trim(),
-      spesifikasiMerk: document.getElementById('prop-spek').value.trim() || '-',
-      jumlah: parseInt(document.getElementById('prop-jumlah').value) || 1,
-      satuan: document.getElementById('prop-satuan').value.trim() || 'Unit',
-      lokasiRak: document.getElementById('prop-lokasi').value.trim() || 'Lemari 1',
-      keterangan: document.getElementById('prop-keterangan').value.trim(),
-      pengusulNama: `${currentUser.name} (${currentUser.roleTitle})`,
-      pengusulEmail: currentUser.email
-    };
+  const formProposal = document.getElementById('form-proposal');
+  if (formProposal) {
+    formProposal.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const getVal = (id1, id2) => {
+        const el = document.getElementById(id1) || document.getElementById(id2);
+        return el ? el.value.trim() : '';
+      };
 
-    window.db.addProposal(payload);
-    showToast(`Usulan "${payload.namaBarang}" berhasil dikirim ke Toolman!`, 'success');
-    closeModal('modal-proposal');
-    switchView('proposals');
-  });
+      const payload = {
+        kodeBarang: getVal('prop-kode'),
+        namaBarang: getVal('prop-nama'),
+        spesifikasiMerk: getVal('prop-spesifikasi', 'prop-spek') || '-',
+        jumlah: parseInt(getVal('prop-jumlah')) || 1,
+        satuan: getVal('prop-satuan') || 'Unit',
+        lokasiRak: getVal('prop-lokasi') || 'Lemari 1',
+        keterangan: getVal('prop-keterangan') || '-',
+        pengusulNama: currentUser ? `${currentUser.name} (${currentUser.roleTitle})` : 'Guru Praktik',
+        pengusulEmail: currentUser ? (currentUser.email || currentUser.username) : 'guru'
+      };
 
-  // Form Review Proposal oleh Toolman
-  document.getElementById('form-review-proposal').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const propId = document.getElementById('review-prop-id').value;
-    const notes = document.getElementById('review-notes').value.trim();
+      await window.db.addProposal(payload);
+      showToast(`Usulan "${payload.namaBarang}" berhasil dikirim ke Toolman!`, 'success');
+      closeModal('modal-proposal');
+      switchView('proposals');
+    });
+  }
 
-    const result = window.db.approveProposal(propId, notes);
-    if (result) {
-      showToast(`Usulan "${result.namaBarang}" DISETUJUI Toolman & otomatis masuk ke Master Database!`, 'success');
-    }
-    closeModal('modal-review-proposal');
-    refreshAll();
-  });
+  // Review Proposal Buttons (Toolman)
+  const btnApprove = document.getElementById('btn-approve-proposal');
+  if (btnApprove) {
+    btnApprove.addEventListener('click', async () => {
+      const notesEl = document.getElementById('review-prop-notes') || document.getElementById('review-notes');
+      const notes = notesEl ? notesEl.value.trim() : 'Disetujui Toolman';
+      if (activeReviewPropId) {
+        const result = await window.db.approveProposal(activeReviewPropId, notes);
+        if (result) {
+          showToast(`Usulan "${result.namaBarang}" DISETUJUI Toolman & otomatis masuk ke Master Database!`, 'success');
+        }
+        closeModal('modal-review-proposal');
+        refreshAll();
+      }
+    });
+  }
 
-  document.getElementById('btn-execute-reject').addEventListener('click', () => {
-    const propId = document.getElementById('review-prop-id').value;
-    const notes = document.getElementById('review-notes').value.trim();
-    if (!notes) {
-      showToast('Wajib memberikan catatan alasan penolakan!', 'error');
-      return;
-    }
-    const result = window.db.rejectProposal(propId, notes);
-    if (result) {
-      showToast(`Usulan "${result.namaBarang}" DITOLAK oleh Toolman. Log tercatat untuk Kajur.`, 'info');
-    }
-    closeModal('modal-review-proposal');
-    refreshAll();
-  });
+  const btnReject = document.getElementById('btn-reject-proposal');
+  if (btnReject) {
+    btnReject.addEventListener('click', async () => {
+      const notesEl = document.getElementById('review-prop-notes') || document.getElementById('review-notes');
+      const notes = notesEl ? notesEl.value.trim() : '';
+      if (!notes) {
+        showToast('Wajib memberikan catatan alasan penolakan!', 'error');
+        return;
+      }
+      if (activeReviewPropId) {
+        const result = await window.db.rejectProposal(activeReviewPropId, notes);
+        if (result) {
+          showToast(`Usulan "${result.namaBarang}" DITOLAK oleh Toolman. Log tercatat untuk Kajur.`, 'info');
+        }
+        closeModal('modal-review-proposal');
+        refreshAll();
+      }
+    });
+  }
 
   // Event Ganti Password Modal
-  document.getElementById('btn-open-change-password').addEventListener('click', () => {
-    document.getElementById('cp-user-name').textContent = currentUser.name;
-    document.getElementById('cp-user-email').textContent = currentUser.email;
-    document.getElementById('form-change-password').reset();
-    openModal('modal-change-password');
-  });
+  const btnOpenCP = document.getElementById('btn-open-change-password');
+  if (btnOpenCP) {
+    btnOpenCP.addEventListener('click', () => {
+      if (currentUser) {
+        const nameEl = document.getElementById('cp-user-name');
+        const emailEl = document.getElementById('cp-user-email');
+        if (nameEl) nameEl.textContent = currentUser.name;
+        if (emailEl) emailEl.textContent = currentUser.email || currentUser.username;
+      }
+      const formCP = document.getElementById('form-change-password');
+      if (formCP) formCP.reset();
+      openModal('modal-change-password');
+    });
+  }
 
-  document.getElementById('form-change-password').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const oldPass = document.getElementById('cp-old-password').value.trim();
-    const newPass = document.getElementById('cp-new-password').value.trim();
-    const confirmPass = document.getElementById('cp-confirm-password').value.trim();
+  const formCP = document.getElementById('form-change-password');
+  if (formCP) {
+    formCP.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const oldPass = document.getElementById('cp-old-password').value.trim();
+      const newPass = document.getElementById('cp-new-password').value.trim();
+      const confirmPass = document.getElementById('cp-confirm-password').value.trim();
 
-    if (newPass !== confirmPass) {
-      showToast('Konfirmasi password baru tidak cocok!', 'error');
-      return;
-    }
+      if (newPass !== confirmPass) {
+        showToast('Konfirmasi password baru tidak cocok!', 'error');
+        return;
+      }
 
-    try {
-      await window.db.changePassword(currentUser.email, oldPass, newPass);
-      showToast(`Password akun ${currentUser.name} berhasil diperbarui!`, 'success');
-      closeModal('modal-change-password');
-    } catch (err) {
-      showToast(err.message || 'Gagal mengubah password', 'error');
-    }
-  });
-
-  // Reset Data ke Isi Excel Asli
-  document.getElementById('btn-reset-excel-data').addEventListener('click', () => {
-    if (confirm('Kembalikan data inventaris ke 9 barang asli file Excel?')) {
-      window.db.resetToExcel();
-      refreshAll();
-      closeModal('modal-settings');
-      showToast('Data berhasil di-reset sesuai file Excel Inventaris_Lab_TEI.xlsx', 'success');
-    }
-  });
+      try {
+        await window.db.changePassword(currentUser.email || currentUser.username, oldPass, newPass);
+        showToast(`Password akun ${currentUser.name} berhasil diperbarui!`, 'success');
+        closeModal('modal-change-password');
+      } catch (err) {
+        showToast(err.message || 'Gagal mengubah password', 'error');
+      }
+    });
+  }
 }
 
 function openItemModal(itemData = null) {
   const form = document.getElementById('form-item');
-  form.reset();
+  if (form) form.reset();
+
+  const setVal = (id1, id2, val) => {
+    const el = document.getElementById(id1) || document.getElementById(id2);
+    if (el) el.value = val;
+  };
 
   if (itemData) {
-    document.getElementById('modal-item-title').innerHTML = '<i class="ph-bold ph-pencil"></i> Edit Master Inventaris (Toolman)';
-    document.getElementById('form-item-id').value = itemData.id;
-    document.getElementById('form-kode').value = itemData.kodeBarang;
-    document.getElementById('form-nama').value = itemData.namaBarang;
-    document.getElementById('form-spek').value = itemData.spesifikasiMerk || '';
-    document.getElementById('form-jumlah').value = itemData.jumlah;
-    document.getElementById('form-satuan').value = itemData.satuan;
-    document.getElementById('form-kondisi').value = itemData.kondisi;
-    document.getElementById('form-status').value = itemData.statusPenggunaan || 'Digunakan';
-    document.getElementById('form-tahun').value = itemData.tahunPerolehan || '2026';
-    document.getElementById('form-dana').value = itemData.sumberDana || 'Dana sekolah';
-    document.getElementById('form-lokasi').value = itemData.lokasiRak;
-    document.getElementById('form-tgl-cek').value = itemData.tglCekTerakhir || '';
-    document.getElementById('form-keterangan').value = itemData.keterangan || '';
+    const titleEl = document.getElementById('modal-item-title');
+    if (titleEl) titleEl.innerHTML = '<i class="ph-bold ph-pencil"></i> Edit Master Inventaris (Toolman)';
+    setVal('form-item-id', 'item-id', itemData.id);
+    setVal('item-kode', 'form-kode', itemData.kodeBarang || '');
+    setVal('item-nama', 'form-nama', itemData.namaBarang || '');
+    setVal('item-spesifikasi', 'form-spek', itemData.spesifikasiMerk || '');
+    setVal('item-jumlah', 'form-jumlah', itemData.jumlah || 1);
+    setVal('item-satuan', 'form-satuan', itemData.satuan || 'Unit');
+    setVal('item-kondisi', 'form-kondisi', itemData.kondisi || 'Baik');
+    setVal('item-status', 'form-status', itemData.statusPenggunaan || 'Digunakan');
+    setVal('item-tahun', 'form-tahun', itemData.tahunPerolehan || '2026');
+    setVal('item-dana', 'form-dana', itemData.sumberDana || 'Dana sekolah');
+    setVal('item-lokasi', 'form-lokasi', itemData.lokasiRak || 'Lemari 1');
+    setVal('item-tgl-cek', 'form-tgl-cek', itemData.tglCekTerakhir || '');
+    setVal('item-keterangan', 'form-keterangan', itemData.keterangan || '');
   } else {
-    document.getElementById('modal-item-title').innerHTML = '<i class="ph-bold ph-package"></i> Tambah Master Inventaris (Toolman)';
-    document.getElementById('form-item-id').value = '';
-    document.getElementById('form-tgl-cek').value = new Date().toISOString().split('T')[0];
+    const titleEl = document.getElementById('modal-item-title');
+    if (titleEl) titleEl.innerHTML = '<i class="ph-bold ph-cube"></i> Tambah Master Inventaris (Toolman)';
+    setVal('form-item-id', 'item-id', '');
+    setVal('item-tgl-cek', 'form-tgl-cek', new Date().toISOString().split('T')[0]);
   }
   openModal('modal-item');
 }
@@ -1066,12 +1107,16 @@ window.openProposalForExisting = function(itemId) {
   const item = window.db.getById(itemId);
   openProposalModal();
   if (item) {
-    document.getElementById('prop-kode').value = item.kodeBarang;
-    document.getElementById('prop-nama').value = item.namaBarang;
-    document.getElementById('prop-spek').value = item.spesifikasiMerk || '';
-    document.getElementById('prop-satuan').value = item.satuan;
-    document.getElementById('prop-lokasi').value = item.lokasiRak;
-    document.getElementById('prop-keterangan').value = `Penambahan kuantitas untuk ${item.namaBarang}`;
+    const setVal = (id1, id2, val) => {
+      const el = document.getElementById(id1) || document.getElementById(id2);
+      if (el) el.value = val;
+    };
+    setVal('prop-kode', '', item.kodeBarang);
+    setVal('prop-nama', '', item.namaBarang);
+    setVal('prop-spesifikasi', 'prop-spek', item.spesifikasiMerk || '');
+    setVal('prop-satuan', '', item.satuan || 'Unit');
+    setVal('prop-lokasi', '', item.lokasiRak || 'Lemari 1');
+    setVal('prop-keterangan', '', `Penambahan kuantitas untuk ${item.namaBarang}`);
   }
 };
 
@@ -1079,22 +1124,27 @@ window.openReviewModal = function(propId) {
   const prop = window.db.getProposals().find(p => p.id === propId);
   if (!prop) return;
 
-  document.getElementById('review-prop-id').value = prop.id;
-  document.getElementById('review-prop-details').innerHTML = `
-    <div style="margin-bottom: 6px;">
-      <span class="code-tag">${prop.kodeBarang}</span> <strong>${prop.namaBarang}</strong>
-    </div>
-    <div style="color: var(--text-muted); font-size: 0.82rem; margin-bottom: 4px;">
-      Jumlah: <strong>${prop.jumlah} ${prop.satuan}</strong> • Lokasi: <strong>${prop.lokasiRak}</strong>
-    </div>
-    <div style="color: var(--accent-blue); font-size: 0.82rem;">
-      Pengusul: <strong>${prop.pengusulNama}</strong>
-    </div>
-    <div style="color: var(--text-main); font-size: 0.82rem; font-style: italic; margin-top: 4px;">
-      "${prop.keterangan}"
-    </div>
-  `;
-  document.getElementById('review-notes').value = 'Disetujui. Sesuai kurikulum praktik elektronika.';
+  activeReviewPropId = prop.id;
+
+  const detailsEl = document.getElementById('review-prop-details');
+  if (detailsEl) {
+    detailsEl.innerHTML = `
+      <div style="margin-bottom: 6px;">
+        <span class="code-tag">${prop.kodeBarang}</span> <strong>${prop.namaBarang}</strong>
+      </div>
+      <div style="color: var(--text-muted); font-size: 0.82rem; margin-bottom: 4px;">
+        Jumlah: <strong>${prop.jumlah} ${prop.satuan}</strong> • Lokasi: <strong>${prop.lokasiRak}</strong>
+      </div>
+      <div style="color: var(--accent-blue); font-size: 0.82rem;">
+        Pengusul: <strong>${prop.pengusulNama}</strong>
+      </div>
+      <div style="color: var(--text-main); font-size: 0.82rem; font-style: italic; margin-top: 4px;">
+        "${prop.keterangan}"
+      </div>
+    `;
+  }
+  const notesEl = document.getElementById('review-prop-notes') || document.getElementById('review-notes');
+  if (notesEl) notesEl.value = 'Disetujui. Sesuai kurikulum praktik elektronika.';
   openModal('modal-review-proposal');
 };
 
@@ -1103,10 +1153,17 @@ window.openReviewModal = function(propId) {
    =================================================== */
 
 function initFilters() {
-  document.getElementById('excel-search-input').addEventListener('input', renderInventoryTable);
-  document.getElementById('filter-excel-kondisi').addEventListener('change', renderInventoryTable);
-  document.getElementById('filter-excel-lokasi').addEventListener('change', renderInventoryTable);
-  document.getElementById('filter-excel-status').addEventListener('change', renderInventoryTable);
+  const searchInput = document.getElementById('excel-search-input');
+  if (searchInput) searchInput.addEventListener('input', renderInventoryTable);
+
+  const kondisiSelect = document.getElementById('filter-excel-kondisi');
+  if (kondisiSelect) kondisiSelect.addEventListener('change', renderInventoryTable);
+
+  const lokasiSelect = document.getElementById('filter-excel-lokasi');
+  if (lokasiSelect) lokasiSelect.addEventListener('change', renderInventoryTable);
+
+  const statusSelect = document.getElementById('filter-excel-status');
+  if (statusSelect) statusSelect.addEventListener('change', renderInventoryTable);
 }
 
 /* ===================================================

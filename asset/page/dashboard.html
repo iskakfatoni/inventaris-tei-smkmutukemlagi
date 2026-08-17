@@ -315,8 +315,8 @@
         <h3 id="modal-item-title"><i class="ph-bold ph-cube"></i> Tambah Data Barang Master</h3>
         <button class="btn-close-modal" data-close="modal-item"><i class="ph-bold ph-x"></i></button>
       </div>
-      <form id="form-item-excel">
-        <input type="hidden" id="item-id">
+      <form id="form-item">
+        <input type="hidden" id="form-item-id">
         <div class="modal-body">
           <div class="form-grid">
             <div class="form-group">
@@ -724,6 +724,31 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-primary" data-close="modal-rbac-info">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Pengaturan Database Cloud -->
+  <div class="modal-overlay" id="modal-settings">
+    <div class="modal-card" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3><i class="ph-bold ph-gear"></i> Pengaturan Cloud Database</h3>
+        <button class="btn-close-modal" data-close="modal-settings"><i class="ph-bold ph-x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div style="background: rgba(6, 182, 212, 0.05); border: 1px solid rgba(6, 182, 212, 0.2); padding: 14px; border-radius: var(--radius-md); margin-bottom: 16px;">
+          <div style="font-size: 0.85rem; line-height: 1.6;">
+            <div>Project Firebase: <strong style="color: var(--accent-cyan);">inventaris-tei-smkmutu</strong></div>
+            <div>Firestore Status: <strong style="color: var(--color-success);"><i class="ph-bold ph-check-circle"></i> Terhubung Real-Time</strong></div>
+            <div>Auth RBAC: <strong style="color: #fff;">Toolman, Guru, Kajur, Guest</strong></div>
+          </div>
+        </div>
+        <p style="font-size: 0.82rem; color: var(--text-muted);">
+          Database dikonfigurasi menggunakan Google Cloud Firestore SDK v10.8 dengan sinkronisasi multi-device otomatis tanpa perlu refresh manual.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-close="modal-settings">Tutup</button>
       </div>
     </div>
   </div>
