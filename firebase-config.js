@@ -4,7 +4,7 @@
  * SMK MUTU KEMLAGI - Teknik Elektronika Industri
  */
 
-// 1. Konfigurasi Firebase Resmi Pengguna
+// Konfigurasi Firebase Resmi Pengguna
 const firebaseConfig = {
   apiKey: "AIzaSyBhwdWwFTi6xH6quZyyOnbVqgKWu6Teo1M",
   authDomain: "inventaris-tei-smkmutu.firebaseapp.com",
@@ -14,191 +14,12 @@ const firebaseConfig = {
   appId: "1:18734181774:web:4fb1444a5aa718be8808df"
 };
 
-// 2. Daftar Pengguna Resmi & Password Default: 12345
-const DEFAULT_USERS_SEED = [
-  {
-    id: 'user-akbar',
-    email: 'akbarhasfi020@gmail.com',
-    name: 'Akbar Rayhan',
-    role: 'toolman',
-    roleTitle: 'Toolman Bengkel TEI (Petugas Utama)',
-    initials: 'AR',
-    password: '12345'
-  },
-  {
-    id: 'user-sutarini',
-    email: 'sutarinirs@gmail.com',
-    name: 'Rahayu Sutarini',
-    role: 'guru',
-    roleTitle: 'Guru Praktik TEI (Pengusul Kebutuhan)',
-    initials: 'RS',
-    password: '12345'
-  },
-  {
-    id: 'user-iskak',
-    email: 'iskakfatoni@gmail.com',
-    name: 'M. Iskak Fatoni',
-    role: 'kajur',
-    roleTitle: 'Kepala Program Keahlian (Kajur) TEI',
-    initials: 'IF',
-    password: '12345'
-  }
-];
-
-// Data Awal dari File Excel (Untuk Inisialisasi Otomatis ke Cloud Firestore)
-const EXCEL_INITIAL_SEED = [
-  {
-    no: 1,
-    kodeBarang: 'TEI-TRN-001',
-    namaBarang: 'Project Board / Trainer Kit',
-    fotoBarang: '',
-    spesifikasiMerk: '-',
-    jumlah: 19,
-    satuan: 'Unit',
-    kondisi: 'Baik',
-    statusPenggunaan: 'Digunakan',
-    tahunPerolehan: '2026',
-    sumberDana: 'Dana sekolah',
-    lokasiRak: 'Etalase A',
-    tglCekTerakhir: '2026-08-05',
-    keterangan: 'Untuk Praktek SKE'
-  },
-  {
-    no: 2,
-    kodeBarang: 'TEI-ARD-002',
-    namaBarang: 'Arduino Uno R3',
-    fotoBarang: '',
-    spesifikasiMerk: 'Original / ATmega328P',
-    jumlah: 12,
-    satuan: 'Unit',
-    kondisi: 'Baik',
-    statusPenggunaan: 'Digunakan',
-    tahunPerolehan: '2026',
-    sumberDana: 'Dana sekolah',
-    lokasiRak: 'Lemari 1',
-    tglCekTerakhir: '2026-07-27',
-    keterangan: 'Untuk Praktek SKI'
-  },
-  {
-    no: 3,
-    kodeBarang: 'TEI-SLD-003',
-    namaBarang: 'Solder Listrik',
-    fotoBarang: '',
-    spesifikasiMerk: '-',
-    jumlah: 17,
-    satuan: 'Unit',
-    kondisi: 'Rusak Ringan',
-    statusPenggunaan: 'Disimpan',
-    tahunPerolehan: '2025',
-    sumberDana: 'Dana sekolah',
-    lokasiRak: 'Kontener box kecil',
-    tglCekTerakhir: '2026-07-23',
-    keterangan: 'Untuk Praktek Gamtek'
-  },
-  {
-    no: 4,
-    kodeBarang: 'TEI-ULC-004',
-    namaBarang: 'Sensor Ultra Sonic',
-    fotoBarang: '',
-    spesifikasiMerk: 'HC-SR04',
-    jumlah: 17,
-    satuan: 'Unit',
-    kondisi: 'Baik',
-    statusPenggunaan: 'Digunakan',
-    tahunPerolehan: '2026',
-    sumberDana: 'Dana sekolah',
-    lokasiRak: 'Lemari 1',
-    tglCekTerakhir: '2026-07-27',
-    keterangan: '-'
-  },
-  {
-    no: 5,
-    kodeBarang: 'TEI-LCD-005',
-    namaBarang: 'LCD 16x2',
-    fotoBarang: '',
-    spesifikasiMerk: '16x2 Character Blue/Green',
-    jumlah: 3,
-    satuan: 'unit',
-    kondisi: 'Baik',
-    statusPenggunaan: 'Digunakan',
-    tahunPerolehan: '2026',
-    sumberDana: 'Dana sekolah',
-    lokasiRak: 'Lemari 1',
-    tglCekTerakhir: '2026-07-27',
-    keterangan: '-'
-  },
-  {
-    no: 6,
-    kodeBarang: 'TEI-PIR-006',
-    namaBarang: 'Sensor PIR',
-    fotoBarang: '',
-    spesifikasiMerk: 'HC-SR501',
-    jumlah: 16,
-    satuan: 'unit',
-    kondisi: 'Baik',
-    statusPenggunaan: 'Digunakan',
-    tahunPerolehan: '2026',
-    sumberDana: 'Dana sekolah',
-    lokasiRak: 'Lemari 1',
-    tglCekTerakhir: '2026-07-27',
-    keterangan: '-'
-  },
-  {
-    no: 7,
-    kodeBarang: 'TEI-DHT-007',
-    namaBarang: 'Sensor DHT-11',
-    fotoBarang: '',
-    spesifikasiMerk: 'Temperature & Humidity',
-    jumlah: 33,
-    satuan: 'unit',
-    kondisi: 'Baik',
-    statusPenggunaan: 'Digunakan',
-    tahunPerolehan: '2026',
-    sumberDana: 'Dana sekolah',
-    lokasiRak: 'Lemari 1',
-    tglCekTerakhir: '2026-07-27',
-    keterangan: '-'
-  },
-  {
-    no: 8,
-    kodeBarang: 'TEI-ARS-008',
-    namaBarang: 'Sensor Arus',
-    fotoBarang: '',
-    spesifikasiMerk: 'ACS712',
-    jumlah: 1,
-    satuan: 'unit',
-    kondisi: 'Baik',
-    statusPenggunaan: 'Disimpan',
-    tahunPerolehan: '2026',
-    sumberDana: 'Dana sekolah',
-    lokasiRak: 'Lemari 1',
-    tglCekTerakhir: '2026-07-27',
-    keterangan: '-'
-  },
-  {
-    no: 9,
-    kodeBarang: 'TEI-BSR-001',
-    namaBarang: 'BUSER/Speaker',
-    fotoBarang: '',
-    spesifikasiMerk: '5V Active Buzzer',
-    jumlah: 9,
-    satuan: 'Unit',
-    kondisi: 'Baik',
-    statusPenggunaan: 'Digunakan',
-    tahunPerolehan: '2026',
-    sumberDana: 'Dana sekolah',
-    lokasiRak: 'Lemari 1',
-    tglCekTerakhir: '2026-08-01',
-    keterangan: '-'
-  }
-];
-
 class FirebaseInventoryStore {
   constructor() {
     this.firebaseConfig = firebaseConfig;
     this.inventory = [];
     this.proposals = [];
-    this.users = JSON.parse(JSON.stringify(DEFAULT_USERS_SEED));
+    this.users = [];
     this.isCloudConnected = false;
     this.listeners = [];
   }
@@ -216,19 +37,13 @@ class FirebaseInventoryStore {
 
       // Realtime listener untuk koleksi inventaris
       const invCol = collection(this.db, "inventaris");
-      onSnapshot(invCol, async (snapshot) => {
-        if (snapshot.empty) {
-          console.log("Cloud Firestore kosong, melakukan seeder otomatis dari Excel...");
-          await this.seedInitialExcelData();
-        } else {
-          this.inventory = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          this.inventory.sort((a, b) => (a.no || 0) - (b.no || 0));
-          this.isCloudConnected = true;
-          this.notifyListeners();
-        }
+      onSnapshot(invCol, (snapshot) => {
+        this.inventory = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        this.inventory.sort((a, b) => (a.no || 0) - (b.no || 0));
+        this.isCloudConnected = true;
+        this.notifyListeners();
       }, (err) => {
-        console.warn("Firestore listener fallback ke lokal:", err.message);
-        this.fallbackToLocal();
+        console.warn("Firestore inventaris listener error:", err.message);
       });
 
       // Realtime listener untuk koleksi usulan barang
@@ -236,72 +51,24 @@ class FirebaseInventoryStore {
       onSnapshot(propCol, (snapshot) => {
         this.proposals = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         this.notifyListeners();
+      }, (err) => {
+        console.warn("Firestore usulan_barang listener error:", err.message);
       });
 
-      // Realtime listener untuk koleksi users (pengaturan password)
+      // Realtime listener untuk koleksi users
       const usersCol = collection(this.db, "users");
-      onSnapshot(usersCol, async (snapshot) => {
-        if (snapshot.empty) {
-          // Seed users default ke Firestore
-          for (const u of DEFAULT_USERS_SEED) {
-            await setDoc(doc(this.db, "users", u.id), u);
-          }
-        } else {
-          this.users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          this.notifyListeners();
-        }
-      }, () => {
-        this.loadLocalUsers();
+      onSnapshot(usersCol, (snapshot) => {
+        this.users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        this.notifyListeners();
+      }, (err) => {
+        console.warn("Firestore users listener error:", err.message);
       });
 
       this.isCloudConnected = true;
       console.log("✅ Berhasil terhubung ke Cloud Firestore:", this.firebaseConfig.projectId);
-      
-      // Pastikan ketiga koleksi (inventaris, users, usulan_barang) ada di Firestore
-      await this.seedInitialExcelData();
     } catch (e) {
-      console.error("Gagal inisialisasi Firebase SDK, fallback ke LocalStore:", e);
-      this.fallbackToLocal();
+      console.error("Gagal inisialisasi Firebase SDK:", e);
     }
-  }
-
-  loadLocalUsers() {
-    const saved = localStorage.getItem('INVENTARIS_USERS_STORAGE');
-    if (saved) {
-      try {
-        this.users = JSON.parse(saved);
-      } catch (e) {
-        this.users = JSON.parse(JSON.stringify(DEFAULT_USERS_SEED));
-      }
-    } else {
-      this.users = JSON.parse(JSON.stringify(DEFAULT_USERS_SEED));
-    }
-  }
-
-  saveLocalUsers() {
-    localStorage.setItem('INVENTARIS_USERS_STORAGE', JSON.stringify(this.users));
-  }
-
-  fallbackToLocal() {
-    this.isCloudConnected = false;
-    const saved = localStorage.getItem('INVENTARIS_LOCAL_FALLBACK');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      this.inventory = parsed.inventory || EXCEL_INITIAL_SEED;
-      this.proposals = parsed.proposals || [];
-    } else {
-      this.inventory = EXCEL_INITIAL_SEED;
-      this.proposals = [];
-    }
-    this.loadLocalUsers();
-    this.notifyListeners();
-  }
-
-  saveLocal() {
-    localStorage.setItem('INVENTARIS_LOCAL_FALLBACK', JSON.stringify({
-      inventory: this.inventory,
-      proposals: this.proposals
-    }));
   }
 
   subscribe(callback) {
@@ -318,7 +85,7 @@ class FirebaseInventoryStore {
   }
 
   getUserByEmail(email) {
-    return this.users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    return this.users.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
   }
 
   verifyPassword(email, passwordInput) {
@@ -342,48 +109,15 @@ class FirebaseInventoryStore {
     user.password = newPassword;
     user.updatedAt = new Date().toISOString();
 
-    if (this.db && this.isCloudConnected) {
+    if (this.db) {
       const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
       await setDoc(doc(this.db, "users", user.id), user, { merge: true });
-    } else {
-      this.saveLocalUsers();
-      this.notifyListeners();
     }
 
     return true;
   }
 
-  // Seeder Data Excel & Users ke Cloud Firestore
-  async seedInitialExcelData() {
-    if (!this.db) return;
-    try {
-      const { collection, addDoc, doc, setDoc, getDocs } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-      
-      // 1. Seed koleksi inventaris (jika kosong)
-      const invCol = collection(this.db, "inventaris");
-      const invSnap = await getDocs(invCol);
-      if (invSnap.empty) {
-        for (const item of EXCEL_INITIAL_SEED) {
-          await addDoc(invCol, item);
-        }
-        console.log("✅ 9 Barang dari Excel berhasil disimpan ke koleksi 'inventaris' Cloud Firestore!");
-      }
-
-      // 2. Seed koleksi users (3 akun resmi)
-      const usersCol = collection(this.db, "users");
-      const usersSnap = await getDocs(usersCol);
-      if (usersSnap.empty) {
-        for (const u of DEFAULT_USERS_SEED) {
-          await setDoc(doc(this.db, "users", u.id), u);
-        }
-        console.log("✅ 3 Akun resmi (Akbar, Sutarini, Iskak) berhasil disimpan ke koleksi 'users' Cloud Firestore!");
-      }
-    } catch (e) {
-      console.error("Gagal seeding data:", e);
-    }
-  }
-
-  // --- CRUD Inventaris (100% Kolom Excel) ---
+  // --- CRUD Inventaris ---
   getAll() {
     return this.inventory;
   }
@@ -394,47 +128,29 @@ class FirebaseInventoryStore {
 
   async addItem(itemData) {
     itemData.no = this.inventory.length + 1;
-    if (this.db && this.isCloudConnected) {
+    if (this.db) {
       const { collection, addDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
       const docRef = await addDoc(collection(this.db, "inventaris"), itemData);
       itemData.id = docRef.id;
-      return itemData;
-    } else {
-      itemData.id = 'inv-' + Date.now();
-      this.inventory.push(itemData);
-      this.saveLocal();
-      this.notifyListeners();
       return itemData;
     }
   }
 
   async updateItem(id, updatedFields) {
-    if (this.db && this.isCloudConnected) {
+    if (this.db) {
       const { doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
       await updateDoc(doc(this.db, "inventaris", id), updatedFields);
-    } else {
-      const idx = this.inventory.findIndex(i => i.id === id);
-      if (idx !== -1) {
-        this.inventory[idx] = { ...this.inventory[idx], ...updatedFields };
-        this.saveLocal();
-        this.notifyListeners();
-      }
     }
   }
 
   async deleteItem(id) {
-    if (this.db && this.isCloudConnected) {
+    if (this.db) {
       const { doc, deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
       await deleteDoc(doc(this.db, "inventaris", id));
-    } else {
-      this.inventory = this.inventory.filter(i => i.id !== id);
-      this.inventory.forEach((item, idx) => item.no = idx + 1);
-      this.saveLocal();
-      this.notifyListeners();
     }
   }
 
-  // Rekapitulasi Kondisi (Sesuai Sheet 2 Excel)
+  // Rekapitulasi Kondisi
   getRekapitulasi() {
     const rekap = {
       baik: { jenis: 0, unit: 0 },
@@ -471,7 +187,7 @@ class FirebaseInventoryStore {
     return rekap;
   }
 
-  // --- Usulan Barang (Guru -> Toolman Approval) ---
+  // --- Usulan Barang ---
   getProposals() {
     return this.proposals;
   }
@@ -480,16 +196,10 @@ class FirebaseInventoryStore {
     propData.status = 'pending';
     propData.tanggalUsul = new Date().toISOString().split('T')[0];
 
-    if (this.db && this.isCloudConnected) {
+    if (this.db) {
       const { collection, addDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
       const docRef = await addDoc(collection(this.db, "usulan_barang"), propData);
       propData.id = docRef.id;
-      return propData;
-    } else {
-      propData.id = 'prop-' + Date.now();
-      this.proposals.unshift(propData);
-      this.saveLocal();
-      this.notifyListeners();
       return propData;
     }
   }
@@ -504,12 +214,9 @@ class FirebaseInventoryStore {
       tanggalApproval: new Date().toISOString().split('T')[0]
     };
 
-    if (this.db && this.isCloudConnected) {
+    if (this.db) {
       const { doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
       await updateDoc(doc(this.db, "usulan_barang", propId), approvalData);
-    } else {
-      Object.assign(prop, approvalData);
-      this.saveLocal();
     }
 
     // Masukkan langsung ke Master Inventaris
@@ -542,13 +249,9 @@ class FirebaseInventoryStore {
       tanggalApproval: new Date().toISOString().split('T')[0]
     };
 
-    if (this.db && this.isCloudConnected) {
+    if (this.db) {
       const { doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
       await updateDoc(doc(this.db, "usulan_barang", propId), rejectData);
-    } else {
-      Object.assign(prop, rejectData);
-      this.saveLocal();
-      this.notifyListeners();
     }
 
     return prop;
