@@ -14,6 +14,7 @@ Sistem Informasi Manajemen Inventaris Alat, Trainer Kit, dan Komponen Praktikum 
 | **Guru Praktik (Pengusul)** | Rahayu Sutarini | `sutarinirs@gmail.com` | `12345` |
 | **Guru Praktik (Pengusul)** | Rizky Prayoga | `zkypra704@gmail.com` | `12345` |
 | **Kepala Jurusan (Supervisi)** | M. Iskak Fatoni | `iskakfatoni@gmail.com` | `12345` |
+| **Guest / Tamu (Read-Only)** | Tamu (Guest) | `guest` / `guest@smkmutukemlagi.sch.id` | `123` |
 
 > 📖 Detail matriks hak akses & SOP lengkap dapat dilihat di [**docs/ATURAN_PENGGUNA.md**](docs/ATURAN_PENGGUNA.md).
 
@@ -31,7 +32,8 @@ inventaris-tei-smk-mutu-kemlagi/
 │   │   ├── logo-smkmutu.webp
 │   │   └── logo-tei.webp
 │   └── page/
-│       └── dashboard.html           <-- Halaman utama dashboard & inventaris
+│       ├── dashboard.html           <-- Halaman utama dashboard & inventaris (Role RBAC)
+│       └── guest.html               <-- Halaman khusus tamu (Read-Only Inventaris Murni)
 ├── css/
 │   └── style.css                    <-- Stylesheet, dark mode & full-width desktop
 ├── js/

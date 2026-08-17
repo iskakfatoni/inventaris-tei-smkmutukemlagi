@@ -12,12 +12,65 @@ const firebaseConfig = {
   storageBucket: "inventaris-tei-smkmutu.firebasestorage.app",
   messagingSenderId: "18734181774",
   appId: "1:18734181774:web:4fb1444a5aa718be8808df"
+};
+
 class FirebaseInventoryStore {
   constructor() {
     this.firebaseConfig = firebaseConfig;
     this.inventory = [];
     this.proposals = [];
-    this.users = [];
+    this.users = [
+      {
+        id: 'usr-akbar',
+        name: 'Akbar Rayhan',
+        email: 'akbarhasfi020@gmail.com',
+        username: 'akbarhasfi020@gmail.com',
+        role: 'toolman',
+        roleTitle: 'Toolman (Petugas Utama)',
+        initials: 'AR',
+        password: '12345'
+      },
+      {
+        id: 'usr-rahayu',
+        name: 'Rahayu Sutarini',
+        email: 'sutarinirs@gmail.com',
+        username: 'sutarinirs@gmail.com',
+        role: 'guru',
+        roleTitle: 'Guru Praktik (Pengusul)',
+        initials: 'RS',
+        password: '12345'
+      },
+      {
+        id: 'usr-rizky',
+        name: 'Rizky Prayoga',
+        email: 'zkypra704@gmail.com',
+        username: 'zkypra704@gmail.com',
+        role: 'guru',
+        roleTitle: 'Guru Praktik (Pengusul)',
+        initials: 'RP',
+        password: '12345'
+      },
+      {
+        id: 'usr-iskak',
+        name: 'M. Iskak Fatoni',
+        email: 'iskakfatoni@gmail.com',
+        username: 'iskakfatoni@gmail.com',
+        role: 'kajur',
+        roleTitle: 'Kepala Jurusan (Supervisi)',
+        initials: 'IF',
+        password: '12345'
+      },
+      {
+        id: 'usr-guest',
+        name: 'Tamu (Guest)',
+        email: 'guest@smkmutukemlagi.sch.id',
+        username: 'guest',
+        role: 'guest',
+        roleTitle: 'Guest (Hanya Lihat Data)',
+        initials: 'GT',
+        password: '123'
+      }
+    ];
     this.tahunAjaranList = [
       { id: 'ta-2026-2027', nama: '2026/2027', isAktif: true, createdAt: '2026-08-01' }
     ];
@@ -83,7 +136,21 @@ class FirebaseInventoryStore {
       const usersCol = collection(this.db, "users");
       onSnapshot(usersCol, (snapshot) => {
         if (!snapshot.empty) {
-          this.users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          const cloudUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          // Pastikan akun guest default selalu tersedia
+          if (!cloudUsers.some(u => u.role === 'guest' || u.email === 'guest@smkmutukemlagi.sch.id')) {
+            cloudUsers.push({
+              id: 'usr-guest',
+              name: 'Tamu (Guest)',
+              email: 'guest@smkmutukemlagi.sch.id',
+              username: 'guest',
+              role: 'guest',
+              roleTitle: 'Guest (Hanya Lihat Data)',
+              initials: 'GT',
+              password: '123'
+            });
+          }
+          this.users = cloudUsers;
           this.notifyListeners();
         }
       }, (err) => {
@@ -267,14 +334,35 @@ class FirebaseInventoryStore {
   getUserByEmail(email) {
     if (!email) return null;
     const cleanEmail = email.trim().toLowerCase();
-    return this.users.find(u => u.email && u.email.trim().toLowerCase() === cleanEmail);
+
+    // Dukungan login username 'guest' atau format email tamu
+    if (cleanEmail === 'guest' || cleanEmail === 'guest@smkmutukemlagi.sch.id' || cleanEmail === 'guest@gmail.com') {
+      const foundGuest = this.users.find(u => u.role === 'guest' || u.email === 'guest@smkmutukemlagi.sch.id');
+      if (foundGuest) return foundGuest;
+      return {
+        id: 'usr-guest',
+        name: 'Tamu (Guest)',
+        email: 'guest@smkmutukemlagi.sch.id',
+        username: 'guest',
+        role: 'guest',
+        roleTitle: 'Guest (Hanya Lihat Data)',
+        initials: 'GT',
+        password: '123'
+      };
+    }
+
+    return this.users.find(u => 
+      (u.email && u.email.trim().toLowerCase() === cleanEmail) ||
+      (u.username && u.username.trim().toLowerCase() === cleanEmail)
+    );
   }
 
   verifyPassword(email, passwordInput) {
     const user = this.getUserByEmail(email);
     if (!user) return false;
     const cleanPassInput = (passwordInput || '').trim();
-    const storedPass = (user.password || '12345').trim();
+    const defaultPass = user.role === 'guest' ? '123' : '12345';
+    const storedPass = (user.password || defaultPass).trim();
     return storedPass === cleanPassInput;
   }
 
@@ -282,6 +370,9 @@ class FirebaseInventoryStore {
     const user = this.getUserByEmail(email);
     if (!user) {
       throw new Error("Pengguna tidak ditemukan.");
+    }
+    if (user.role === 'guest') {
+      throw new Error("Akun Tamu (Guest) bersifat publik read-only dan password tidak dapat diubah!");
     }
     if ((user.password || '12345').trim() !== (oldPassword || '').trim()) {
       throw new Error("Password lama salah!");

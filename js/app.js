@@ -2,20 +2,31 @@ let currentUser = null; // Disimpan saat login aktif
 
 const isLoginPage = document.getElementById('screen-login') !== null;
 const isDashboardPage = document.getElementById('screen-app') !== null;
+const isGuestPage = document.getElementById('screen-guest') !== null;
 
 document.addEventListener('DOMContentLoaded', () => {
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register(isDashboardPage ? '../../sw.js' : 'sw.js').catch(() => {});
+    navigator.serviceWorker.register(isLoginPage ? 'sw.js' : '../../sw.js').catch(() => {});
   }
   applyAppTexts();
 
   const savedSessionEmail = sessionStorage.getItem('INVENTARIS_LOGGED_USER');
+  const savedUserJson = sessionStorage.getItem('INVENTARIS_LOGGED_USER_DATA');
+  if (savedUserJson) {
+    try {
+      currentUser = JSON.parse(savedUserJson);
+    } catch (e) {}
+  }
 
   // --- 1. JIKA DI HALAMAN LOGIN (index.html) ---
   if (isLoginPage) {
     initAuthLanding();
     if (savedSessionEmail) {
-      window.location.href = 'asset/page/dashboard.html';
+      if (currentUser && currentUser.role === 'guest') {
+        window.location.href = 'asset/page/guest.html';
+      } else {
+        window.location.href = 'asset/page/dashboard.html';
+      }
     }
   }
 
@@ -26,11 +37,10 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const savedUserJson = sessionStorage.getItem('INVENTARIS_LOGGED_USER_DATA');
-    if (savedUserJson) {
-      try {
-        currentUser = JSON.parse(savedUserJson);
-      } catch (e) {}
+    // Jika pengguna yang login adalah Guest, arahkan ke tampilan khusus guest
+    if (currentUser && currentUser.role === 'guest') {
+      window.location.href = 'guest.html';
+      return;
     }
 
     initTahunAjaranManager();
@@ -42,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initDashboardLogout();
     renderTahunAjaranDropdowns();
     updateRoleUI();
+    populateLokasiFilter();
     refreshAll();
 
     // Realtime Cloud Firestore sync listener
@@ -55,7 +66,32 @@ document.addEventListener('DOMContentLoaded', () => {
           updateRoleUI();
         }
         renderTahunAjaranDropdowns();
+        populateLokasiFilter();
         refreshAll();
+      });
+    }
+  }
+
+  // --- 3. JIKA DI HALAMAN TAMU / GUEST (asset/page/guest.html) ---
+  if (isGuestPage) {
+    if (!savedSessionEmail) {
+      window.location.href = '../../index.html';
+      return;
+    }
+
+    initTahunAjaranManager();
+    initFilters();
+    initDashboardLogout();
+    renderTahunAjaranDropdowns();
+    populateLokasiFilter();
+    renderInventoryTable();
+
+    // Realtime Cloud Firestore sync listener
+    if (window.db && typeof window.db.subscribe === 'function') {
+      window.db.subscribe(() => {
+        renderTahunAjaranDropdowns();
+        populateLokasiFilter();
+        renderInventoryTable();
       });
     }
   }
@@ -103,7 +139,11 @@ function initAuthLanding() {
       sessionStorage.setItem('INVENTARIS_LOGGED_USER_DATA', JSON.stringify(targetUser));
       showToast(`${APP_TEXT.login.welcomePrefix}, ${targetUser.name}! (${targetUser.roleTitle})`, 'success');
       setTimeout(() => {
-        window.location.href = 'asset/page/dashboard.html';
+        if (targetUser.role === 'guest') {
+          window.location.href = 'asset/page/guest.html';
+        } else {
+          window.location.href = 'asset/page/dashboard.html';
+        }
       }, 250);
     } else {
       showToast(APP_TEXT.login.errorAuth, 'error');
@@ -573,6 +613,20 @@ window.switchView = function(viewId) {
    3. DATA RENDERING
    =================================================== */
 
+function populateLokasiFilter() {
+  const lokasiSelect = document.getElementById('filter-excel-lokasi');
+  if (!lokasiSelect) return;
+  const currentVal = lokasiSelect.value || 'all';
+  const items = window.db.getAll();
+  const uniqueLokasi = Array.from(new Set(items.map(i => i.lokasiRak).filter(Boolean))).sort();
+  
+  lokasiSelect.innerHTML = '<option value="all">Semua Lokasi / Rak</option>';
+  uniqueLokasi.forEach(lok => {
+    const selected = lok === currentVal ? 'selected' : '';
+    lokasiSelect.innerHTML += `<option value="${lok}" ${selected}>${lok}</option>`;
+  });
+}
+
 function refreshAll() {
   renderInventoryTable();
   renderRekapitulasi();
@@ -582,10 +636,15 @@ function refreshAll() {
 // Render Tabel Inventaris (Sheet 1 Excel)
 function renderInventoryTable() {
   const items = window.db.getAll();
-  const search = document.getElementById('excel-search-input').value.toLowerCase().trim();
-  const kondisiFilter = document.getElementById('filter-excel-kondisi').value;
-  const lokasiFilter = document.getElementById('filter-excel-lokasi').value;
-  const statusFilter = document.getElementById('filter-excel-status').value;
+  const searchInput = document.getElementById('excel-search-input');
+  const kondisiSelect = document.getElementById('filter-excel-kondisi');
+  const lokasiSelect = document.getElementById('filter-excel-lokasi');
+  const statusSelect = document.getElementById('filter-excel-status');
+
+  const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
+  const kondisiFilter = kondisiSelect ? kondisiSelect.value : 'all';
+  const lokasiFilter = lokasiSelect ? lokasiSelect.value : 'all';
+  const statusFilter = statusSelect ? statusSelect.value : 'all';
 
   const filtered = items.filter(item => {
     const matchSearch = (item.kodeBarang && item.kodeBarang.toLowerCase().includes(search)) ||
@@ -602,12 +661,15 @@ function renderInventoryTable() {
   });
 
   const tbody = document.getElementById('tbody-excel-inventory');
+  if (!tbody) return;
   tbody.innerHTML = '';
 
   if (filtered.length === 0) {
     tbody.innerHTML = `<tr><td colspan="12" style="text-align: center; padding: 24px; color: var(--text-dim);">Tidak ditemukan data barang.</td></tr>`;
     return;
   }
+
+  const userRole = (currentUser && currentUser.role) ? currentUser.role : 'guest';
 
   filtered.forEach(item => {
     let kondisiBadge = 'badge-condition-baik';
@@ -616,7 +678,7 @@ function renderInventoryTable() {
     if (item.kondisi === 'Hilang') kondisiBadge = 'badge-condition-afkir';
 
     let actionButtons = '';
-    if (currentUser.role === 'toolman') {
+    if (userRole === 'toolman') {
       // Toolman: Petugas Utama (Akses Penuh Edit & Hapus Master)
       actionButtons = `
         <div style="display: flex; justify-content: flex-end; gap: 6px;">
@@ -628,12 +690,17 @@ function renderInventoryTable() {
           </button>
         </div>
       `;
-    } else if (currentUser.role === 'guru') {
+    } else if (userRole === 'guru') {
       // Guru: Pengusul
       actionButtons = `
         <button class="btn btn-sm btn-secondary" onclick="openProposalForExisting('${item.id}')" title="Ajukan Tambahan / Modifikasi ke Toolman">
           <i class="ph ph-paper-plane-tilt"></i> Usulkan
         </button>
+      `;
+    } else if (userRole === 'guest') {
+      // Guest: Read-only badge
+      actionButtons = `
+        <span class="badge badge-asset" style="font-size: 0.75rem; padding: 4px 8px;"><i class="ph ph-check-circle" style="color: var(--color-success); margin-right: 4px;"></i>Terdata</span>
       `;
     } else {
       // Kajur: Supervisi (Label Terverifikasi rapi tanpa ikon)
@@ -655,7 +722,7 @@ function renderInventoryTable() {
         <td><i class="ph ph-map-pin text-cyan"></i> ${item.lokasiRak}</td>
         <td style="color: var(--text-muted); font-size: 0.8rem;">${item.tglCekTerakhir || '-'}</td>
         <td style="color: var(--text-dim); font-size: 0.8rem;">${item.keterangan || '-'}</td>
-        <td class="text-right">${actionButtons}</td>
+        <td class="${userRole === 'guest' ? 'text-center' : 'text-right'}">${actionButtons}</td>
       </tr>
     `;
   });
@@ -665,16 +732,21 @@ function renderInventoryTable() {
 function renderRekapitulasi() {
   const rekap = window.db.getRekapitulasi();
 
-  document.getElementById('rekap-unit-baik').textContent = rekap.baik.unit;
-  document.getElementById('rekap-jenis-baik').textContent = `${rekap.baik.jenis} jenis barang`;
-  
-  document.getElementById('rekap-unit-rusak-ringan').textContent = rekap.rusakRingan.unit;
-  document.getElementById('rekap-jenis-rusak-ringan').textContent = `${rekap.rusakRingan.jenis} jenis barang`;
+  const elBaikUnit = document.getElementById('rekap-unit-baik');
+  const elBaikJenis = document.getElementById('rekap-jenis-baik');
+  const elRusakUnit = document.getElementById('rekap-unit-rusak-ringan');
+  const elRusakJenis = document.getElementById('rekap-jenis-rusak-ringan');
+  const elBeratUnit = document.getElementById('rekap-unit-rusak-berat');
+  const elTotalUnit = document.getElementById('rekap-total-unit');
+  const elTotalJenis = document.getElementById('rekap-total-jenis');
 
-  document.getElementById('rekap-unit-rusak-berat').textContent = rekap.rusakBerat.unit + rekap.hilang.unit;
-  
-  document.getElementById('rekap-total-unit').textContent = rekap.totalUnit;
-  document.getElementById('rekap-total-jenis').textContent = `${rekap.totalJenis} jenis barang`;
+  if (elBaikUnit) elBaikUnit.textContent = rekap.baik.unit;
+  if (elBaikJenis) elBaikJenis.textContent = `${rekap.baik.jenis} jenis barang`;
+  if (elRusakUnit) elRusakUnit.textContent = rekap.rusakRingan.unit;
+  if (elRusakJenis) elRusakJenis.textContent = `${rekap.rusakRingan.jenis} jenis barang`;
+  if (elBeratUnit) elBeratUnit.textContent = rekap.rusakBerat.unit + rekap.hilang.unit;
+  if (elTotalUnit) elTotalUnit.textContent = rekap.totalUnit;
+  if (elTotalJenis) elTotalJenis.textContent = `${rekap.totalJenis} jenis barang`;
 
   const tbody = document.getElementById('tbody-excel-rekap');
   if (!tbody) return;

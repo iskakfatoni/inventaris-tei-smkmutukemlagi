@@ -14,6 +14,7 @@
 | **2** | **Rahayu Sutarini** | `sutarinirs@gmail.com` | **Guru** | **Pengusul Kebutuhan Praktikum:**<br>• Mengajukan usulan alat/modul untuk praktik siswa<br>• Melihat kesiapan alat pada tahun ajaran aktif |
 | **3** | **Rizky Prayoga** | `zkypra704@gmail.com` | **Guru** | **Pengusul Kebutuhan Praktikum:**<br>• Mengajukan usulan alat/modul untuk praktik siswa<br>• Melihat kesiapan alat pada tahun ajaran aktif |
 | **4** | **M. Iskak Fatoni** | `iskakfatoni@gmail.com` | **Kepala Jurusan** | **Supervisi & Audit Log:**<br>• Memantau rekapitulasi kondisi alat per tahun ajaran<br>• Monitoring log riwayat usulan dan arsip tahun ajaran lampau<br>• Wewenang Tambah Barang Master & Import Excel |
+| **5** | **Tamu / Pengunjung** | `guest` / `guest@smkmutukemlagi.sch.id`<br>(Password: `123`) | **Guest (Tamu)** | **Akses Publik Read-Only:**<br>• Hanya dapat melihat dan mencari data inventaris utama<br>• Seluruh tombol aksi/tambah/edit/usulan/hapus dinonaktifkan<br>• Diarahkan langsung ke halaman khusus `guest.html` |
 
 ---
 
