@@ -403,18 +403,19 @@ body {
 }
 
 /* ===================================================
-   MAIN CONTENT & VIEWS
+   MAIN CONTENT & VIEWS (FULL WIDTH RESPONSIVE DESKTOP)
    =================================================== */
 
 .app-content {
   flex: 1;
-  padding: 28px 36px;
-  max-width: 1400px;
-  margin: 0 auto;
+  padding: 24px 32px;
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .content-view {
+  width: 100%;
   display: none;
   animation: fadeIn 0.25s ease forwards;
 }
