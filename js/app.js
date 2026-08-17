@@ -10,8 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   applyAppTexts();
 
-  const savedSessionEmail = sessionStorage.getItem('INVENTARIS_LOGGED_USER');
-  const savedUserJson = sessionStorage.getItem('INVENTARIS_LOGGED_USER_DATA');
+  const savedSessionEmail = localStorage.getItem('INVENTARIS_LOGGED_USER') || sessionStorage.getItem('INVENTARIS_LOGGED_USER');
+  const savedUserJson = localStorage.getItem('INVENTARIS_LOGGED_USER_DATA') || sessionStorage.getItem('INVENTARIS_LOGGED_USER_DATA');
   if (savedUserJson) {
     try {
       currentUser = JSON.parse(savedUserJson);
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const liveUser = window.db.getUserByEmail(savedSessionEmail);
         if (liveUser) {
           currentUser = liveUser;
-          sessionStorage.setItem('INVENTARIS_LOGGED_USER_DATA', JSON.stringify(liveUser));
+          localStorage.setItem('INVENTARIS_LOGGED_USER_DATA', JSON.stringify(liveUser));
           updateRoleUI();
         }
         renderTahunAjaranDropdowns();
@@ -135,8 +135,12 @@ function initAuthLanding() {
 
     const isValid = window.db.verifyPassword(email, password);
     if (isValid) {
-      sessionStorage.setItem('INVENTARIS_LOGGED_USER', targetUser.email);
+      const userIdentifier = targetUser.email || targetUser.username || targetUser.id;
+      localStorage.setItem('INVENTARIS_LOGGED_USER', userIdentifier);
+      localStorage.setItem('INVENTARIS_LOGGED_USER_DATA', JSON.stringify(targetUser));
+      sessionStorage.setItem('INVENTARIS_LOGGED_USER', userIdentifier);
       sessionStorage.setItem('INVENTARIS_LOGGED_USER_DATA', JSON.stringify(targetUser));
+
       showToast(`${APP_TEXT.login.welcomePrefix}, ${targetUser.name}! (${targetUser.roleTitle})`, 'success');
       setTimeout(() => {
         if (targetUser.role === 'guest') {
@@ -156,6 +160,8 @@ function initDashboardLogout() {
   if (btnLogout) {
     btnLogout.addEventListener('click', () => {
       if (confirm(APP_TEXT.login.logoutConfirm)) {
+        localStorage.removeItem('INVENTARIS_LOGGED_USER');
+        localStorage.removeItem('INVENTARIS_LOGGED_USER_DATA');
         sessionStorage.removeItem('INVENTARIS_LOGGED_USER');
         sessionStorage.removeItem('INVENTARIS_LOGGED_USER_DATA');
         window.location.href = '../../index.html';

@@ -22,10 +22,11 @@ service cloud.firestore {
       return isAuthenticated() && getUserRole() == 'guru';
     }
 
-    // 1. Koleksi Pengguna (Users)
+    // 1. Koleksi Pengguna (Users) - Akun terlindungi & tidak dapat dihapus
     match /users/{userId} {
       allow read: if isAuthenticated();
-      allow write: if isKajur() || (isAuthenticated() && request.auth.uid == userId);
+      allow create, update: if isKajur() || (isAuthenticated() && request.auth.uid == userId);
+      allow delete: false;
     }
 
     // 2. Data Inventaris (Sesuai Kolom Excel)
