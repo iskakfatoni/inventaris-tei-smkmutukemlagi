@@ -22,38 +22,64 @@ const OFFICIAL_USERS = [
   }
 ];
 
-let currentUser = null; // Sesi awal: Belum login
+const isLoginPage = document.getElementById('screen-login') !== null;
+const isDashboardPage = document.getElementById('screen-app') !== null;
 
 document.addEventListener('DOMContentLoaded', () => {
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    navigator.serviceWorker.register(isDashboardPage ? '../../sw.js' : 'sw.js').catch(() => {});
   }
   applyAppTexts();
-  initAuthLanding();
-  initTahunAjaranManager();
-  initExcelImportAndExport();
-  initNavigation();
-  initModals();
-  initForms();
-  initFilters();
 
-  // Cek apakah ada sesi tersimpan di sessionStorage
   const savedSessionEmail = sessionStorage.getItem('INVENTARIS_LOGGED_USER');
-  if (savedSessionEmail) {
-    const user = OFFICIAL_USERS.find(u => u.email === savedSessionEmail);
-    if (user) {
-      loginAs(user);
+
+  // --- 1. JIKA DI HALAMAN LOGIN (index.html) ---
+  if (isLoginPage) {
+    initAuthLanding();
+    if (savedSessionEmail) {
+      const user = OFFICIAL_USERS.find(u => u.email === savedSessionEmail);
+      if (user) {
+        window.location.href = 'asset/page/dashboard.html';
+      }
     }
   }
 
-  // Realtime Cloud Firestore sync listener
-  if (window.db && typeof window.db.subscribe === 'function') {
-    window.db.subscribe(() => {
-      if (currentUser) {
-        renderTahunAjaranDropdowns();
-        refreshAll();
-      }
-    });
+  // --- 2. JIKA DI HALAMAN DASHBOARD (asset/page/dashboard.html) ---
+  if (isDashboardPage) {
+    if (!savedSessionEmail) {
+      // Auth Guard: Tendang kembali ke login jika belum ada sesi login
+      window.location.href = '../../index.html';
+      return;
+    }
+
+    const user = OFFICIAL_USERS.find(u => u.email === savedSessionEmail);
+    if (!user) {
+      sessionStorage.removeItem('INVENTARIS_LOGGED_USER');
+      window.location.href = '../../index.html';
+      return;
+    }
+
+    currentUser = user;
+    initTahunAjaranManager();
+    initExcelImportAndExport();
+    initNavigation();
+    initModals();
+    initForms();
+    initFilters();
+    initDashboardLogout();
+    renderTahunAjaranDropdowns();
+    updateRoleUI();
+    refreshAll();
+
+    // Realtime Cloud Firestore sync listener
+    if (window.db && typeof window.db.subscribe === 'function') {
+      window.db.subscribe(() => {
+        if (currentUser) {
+          renderTahunAjaranDropdowns();
+          refreshAll();
+        }
+      });
+    }
   }
 });
 
@@ -64,7 +90,6 @@ document.addEventListener('DOMContentLoaded', () => {
 function applyAppTexts() {
   if (typeof APP_TEXT === 'undefined') return;
 
-  // Placeholder inputs
   const emailInput = document.getElementById('login-landing-email');
   if (emailInput) emailInput.placeholder = APP_TEXT.login.emailPlaceholder;
 
@@ -76,11 +101,13 @@ function applyAppTexts() {
 }
 
 /* ===================================================
-   1. AUTHENTICATION & LOGIN LANDING SCREEN
+   1. AUTHENTICATION & LOGIN LANDING SCREEN (index.html)
    =================================================== */
 
 function initAuthLanding() {
   const formLogin = document.getElementById('form-login-landing');
+  if (!formLogin) return;
+
   formLogin.addEventListener('submit', (e) => {
     e.preventDefault();
     const email = document.getElementById('login-landing-email').value.trim();
@@ -98,39 +125,26 @@ function initAuthLanding() {
 
     if (isValid) {
       sessionStorage.setItem('INVENTARIS_LOGGED_USER', targetUser.email);
-      loginAs(targetUser);
       showToast(`${APP_TEXT.login.welcomePrefix}, ${targetUser.name}! (${targetUser.roleTitle})`, 'success');
+      setTimeout(() => {
+        window.location.href = 'asset/page/dashboard.html';
+      }, 250);
     } else {
       showToast(APP_TEXT.login.errorAuth, 'error');
     }
   });
+}
 
+function initDashboardLogout() {
   const btnLogout = document.getElementById('btn-logout');
   if (btnLogout) {
     btnLogout.addEventListener('click', () => {
       if (confirm(APP_TEXT.login.logoutConfirm)) {
-        logout();
+        sessionStorage.removeItem('INVENTARIS_LOGGED_USER');
+        window.location.href = '../../index.html';
       }
     });
   }
-}
-
-function loginAs(user) {
-  currentUser = user;
-  document.getElementById('screen-login').style.display = 'none';
-  document.getElementById('screen-app').style.display = 'block';
-  renderTahunAjaranDropdowns();
-  updateRoleUI();
-  refreshAll();
-}
-
-function logout() {
-  currentUser = null;
-  sessionStorage.removeItem('INVENTARIS_LOGGED_USER');
-  document.getElementById('login-landing-password').value = '';
-  document.getElementById('screen-app').style.display = 'none';
-  document.getElementById('screen-login').style.display = 'flex';
-  showToast(APP_TEXT.login.logoutSuccess, 'info');
 }
 
 /* ===================================================

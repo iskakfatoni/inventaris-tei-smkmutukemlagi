@@ -26,7 +26,9 @@ inventaris-tei-smk-mutu-kemlagi/
 │   ├── app/
 │   │   ├── Inventaris_TEI.exe       <-- Aplikasi desktop Windows standalone
 │   │   └── app_url.txt              <-- Konfigurasi target URL online
-│   └── image/                       <-- Tempat penyimpanan berkas gambar/foto
+│   ├── image/                       <-- Tempat penyimpanan berkas gambar/foto
+│   └── page/
+│       └── dashboard.html           <-- Halaman utama dashboard & inventaris
 ├── css/
 │   └── style.css                    <-- Stylesheet, dark mode & full-width desktop
 ├── js/
@@ -39,7 +41,7 @@ inventaris-tei-smk-mutu-kemlagi/
 │   └── Launcher.cs                  <-- Source code C# Windows Desktop Launcher
 │
 │   # Berkas Wajib di Root
-├── index.html                       <-- Entry point halaman utama
+├── index.html                       <-- Halaman login murni (Landing Login Page)
 ├── manifest.json                    <-- PWA Web App Manifest
 ├── sw.js                            <-- Service Worker PWA
 ├── firebase.json                    <-- Konfigurasi Firebase CLI
