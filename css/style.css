@@ -105,6 +105,10 @@ body {
 
 .login-header {
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 24px;
 }
 
@@ -241,12 +245,13 @@ body {
 }
 
 .badge-status-system {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 5px 12px;
+  padding: 6px 14px;
   background: rgba(6, 182, 212, 0.08);
-  border: 1px solid rgba(6, 182, 212, 0.2);
+  border: 1px solid rgba(6, 182, 212, 0.25);
   border-radius: 20px;
   font-size: 0.75rem;
   color: var(--accent-cyan);
