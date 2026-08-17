@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
   initAuthLanding();
+  initTahunAjaranManager();
   initNavigation();
   initModals();
   initForms();
@@ -46,7 +47,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Realtime Cloud Firestore sync listener
   if (window.db && typeof window.db.subscribe === 'function') {
     window.db.subscribe(() => {
-      if (currentUser) refreshAll();
+      if (currentUser) {
+        renderTahunAjaranDropdowns();
+        refreshAll();
+      }
     });
   }
 });
@@ -92,6 +96,7 @@ function loginAs(user) {
   currentUser = user;
   document.getElementById('screen-login').style.display = 'none';
   document.getElementById('screen-app').style.display = 'block';
+  renderTahunAjaranDropdowns();
   updateRoleUI();
   refreshAll();
 }
@@ -105,6 +110,117 @@ function logout() {
   showToast('Anda telah keluar dari sistem.', 'info');
 }
 
+/* ===================================================
+   2. TAHUN AJARAN & DATA MIGRATION MANAGER
+   =================================================== */
+
+function initTahunAjaranManager() {
+  const selectTA = document.getElementById('select-active-ta');
+  if (selectTA) {
+    selectTA.addEventListener('change', (e) => {
+      const selectedYear = e.target.value;
+      window.db.setActiveTahunAjaran(selectedYear);
+      refreshAll();
+      showToast(`Beralih ke tampilan Tahun Ajaran: ${selectedYear}`, 'info');
+    });
+  }
+
+  const btnOpenTAManager = document.getElementById('btn-open-ta-manager');
+  if (btnOpenTAManager) {
+    btnOpenTAManager.addEventListener('click', () => {
+      if (currentUser.role === 'guru') {
+        showToast('Hanya Toolman dan Kajur yang berwenang mengelola tahun ajaran & migrasi data', 'error');
+        return;
+      }
+      renderTahunAjaranDropdowns();
+      openModal('modal-ta-manager');
+    });
+  }
+
+  // Form Tambah Tahun Ajaran Baru
+  const formAddTA = document.getElementById('form-add-ta');
+  if (formAddTA) {
+    formAddTA.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const inputName = document.getElementById('input-new-ta-name').value.trim();
+      if (!inputName) return;
+
+      try {
+        await window.db.addTahunAjaran(inputName, true);
+        showToast(`Tahun Ajaran baru "${inputName}" berhasil ditambahkan & dijadikan aktif!`, 'success');
+        document.getElementById('input-new-ta-name').value = '';
+        renderTahunAjaranDropdowns();
+        refreshAll();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+  }
+
+  // Form Migrasi Data Inventaris ke TA Baru
+  const formMigrate = document.getElementById('form-migrate-data');
+  if (formMigrate) {
+    formMigrate.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const sourceYear = document.getElementById('migrate-source-ta').value;
+      const targetYear = document.getElementById('migrate-target-ta').value;
+
+      if (sourceYear === targetYear) {
+        showToast('Tahun ajaran asal dan tujuan tidak boleh sama!', 'error');
+        return;
+      }
+
+      if (confirm(`Apakah Anda yakin ingin menduplikasi seluruh data inventaris dari TA ${sourceYear} ke TA ${targetYear}?`)) {
+        try {
+          const totalMigrated = await window.db.migrateDataToNewYear(sourceYear, targetYear, currentUser.name);
+          showToast(`Sukses! Sebanyak ${totalMigrated} data barang berhasil dimigrasikan ke TA ${targetYear}!`, 'success');
+          closeModal('modal-ta-manager');
+          renderTahunAjaranDropdowns();
+          refreshAll();
+        } catch (err) {
+          showToast(err.message, 'error');
+        }
+      }
+    });
+  }
+}
+
+function renderTahunAjaranDropdowns() {
+  const taList = window.db.getTahunAjaranList();
+  const activeTA = window.db.getActiveTahunAjaran();
+
+  // 1. Selector di Header
+  const selectHeader = document.getElementById('select-active-ta');
+  if (selectHeader) {
+    selectHeader.innerHTML = '';
+    taList.forEach(ta => {
+      const selected = ta.nama === activeTA ? 'selected' : '';
+      selectHeader.innerHTML += `<option value="${ta.nama}" ${selected}>${ta.nama} ${ta.isAktif ? '(Aktif)' : ''}</option>`;
+    });
+  }
+
+  // 2. Pill List di Modal
+  const pillList = document.getElementById('ta-pill-list');
+  if (pillList) {
+    pillList.innerHTML = taList.map(ta => `<span class="badge ${ta.nama === activeTA ? 'badge-condition-baik' : 'badge-asset'}" style="margin-right: 4px;">${ta.nama}</span>`).join(' ');
+  }
+
+  // 3. Dropdown Form Migrasi
+  const selectSource = document.getElementById('migrate-source-ta');
+  const selectTarget = document.getElementById('migrate-target-ta');
+  if (selectSource && selectTarget) {
+    selectSource.innerHTML = '';
+    selectTarget.innerHTML = '';
+    taList.forEach(ta => {
+      selectSource.innerHTML += `<option value="${ta.nama}">${ta.nama}</option>`;
+      selectTarget.innerHTML += `<option value="${ta.nama}">${ta.nama}</option>`;
+    });
+    if (taList.length > 1) {
+      selectTarget.selectedIndex = taList.length - 1;
+    }
+  }
+}
+
 function updateRoleUI() {
   if (!currentUser) return;
   const avatar = document.getElementById('user-avatar');
@@ -116,6 +232,15 @@ function updateRoleUI() {
   if (avatar) avatar.textContent = currentUser.initials;
   if (name) name.textContent = currentUser.name;
   if (tag) tag.textContent = currentUser.roleTitle;
+
+  const btnTAManager = document.getElementById('btn-open-ta-manager');
+  if (btnTAManager) {
+    if (currentUser.role === 'guru') {
+      btnTAManager.style.display = 'none';
+    } else {
+      btnTAManager.style.display = 'inline-flex';
+    }
+  }
 
   if (currentUser.role === 'toolman') {
     if (actionLabel) actionLabel.textContent = 'Tambah Barang Master';

@@ -20,6 +20,10 @@ class FirebaseInventoryStore {
     this.inventory = [];
     this.proposals = [];
     this.users = [];
+    this.tahunAjaranList = [
+      { id: 'ta-2026-2027', nama: '2026/2027', isAktif: true, createdAt: '2026-08-01' }
+    ];
+    this.activeTahunAjaran = '2026/2027';
     this.isCloudConnected = false;
     this.listeners = [];
   }
@@ -35,10 +39,17 @@ class FirebaseInventoryStore {
       this.app = initializeApp(this.firebaseConfig);
       this.db = getFirestore(this.app);
 
-      // Realtime listener untuk koleksi inventaris
+      // 1. Realtime listener untuk koleksi inventaris
       const invCol = collection(this.db, "inventaris");
       onSnapshot(invCol, (snapshot) => {
-        this.inventory = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        this.inventory = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            tahunAjaran: data.tahunAjaran || '2026/2027',
+            ...data
+          };
+        });
         this.inventory.sort((a, b) => (a.no || 0) - (b.no || 0));
         this.isCloudConnected = true;
         this.notifyListeners();
@@ -46,7 +57,28 @@ class FirebaseInventoryStore {
         console.warn("Firestore inventaris listener error:", err.message);
       });
 
-      // Realtime listener untuk koleksi usulan barang
+      // 2. Realtime listener untuk koleksi tahun_ajaran
+      const taCol = collection(this.db, "tahun_ajaran");
+      onSnapshot(taCol, async (snapshot) => {
+        if (snapshot.empty) {
+          // Inisialisasi tahun ajaran 2026/2027 jika belum ada
+          await setDoc(doc(this.db, "tahun_ajaran", "ta-2026-2027"), {
+            id: 'ta-2026-2027',
+            nama: '2026/2027',
+            isAktif: true,
+            createdAt: new Date().toISOString()
+          });
+        } else {
+          this.tahunAjaranList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          const activeTA = this.tahunAjaranList.find(t => t.isAktif);
+          if (activeTA) {
+            this.activeTahunAjaran = activeTA.nama;
+          }
+          this.notifyListeners();
+        }
+      });
+
+      // 3. Realtime listener untuk koleksi usulan_barang
       const propCol = collection(this.db, "usulan_barang");
       onSnapshot(propCol, (snapshot) => {
         this.proposals = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -55,7 +87,7 @@ class FirebaseInventoryStore {
         console.warn("Firestore usulan_barang listener error:", err.message);
       });
 
-      // Realtime listener untuk koleksi users
+      // 4. Realtime listener untuk koleksi users
       const usersCol = collection(this.db, "users");
       onSnapshot(usersCol, (snapshot) => {
         this.users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -77,6 +109,114 @@ class FirebaseInventoryStore {
 
   notifyListeners() {
     this.listeners.forEach(cb => cb());
+  }
+
+  // --- Manajemen Tahun Ajaran ---
+  getTahunAjaranList() {
+    return this.tahunAjaranList.length > 0 ? this.tahunAjaranList : [{ id: 'ta-2026-2027', nama: '2026/2027', isAktif: true }];
+  }
+
+  getActiveTahunAjaran() {
+    return this.activeTahunAjaran || '2026/2027';
+  }
+
+  setActiveTahunAjaran(taNama) {
+    this.activeTahunAjaran = taNama;
+    this.notifyListeners();
+  }
+
+  async addTahunAjaran(taNama, setAsActive = false) {
+    const cleanName = taNama.trim();
+    const existing = this.tahunAjaranList.find(t => t.nama === cleanName);
+    if (existing) {
+      throw new Error(`Tahun Ajaran ${cleanName} sudah ada!`);
+    }
+
+    const newId = 'ta-' + cleanName.replace('/', '-').replace('.', '-');
+    const newDoc = {
+      id: newId,
+      nama: cleanName,
+      isAktif: setAsActive,
+      createdAt: new Date().toISOString()
+    };
+
+    if (this.db) {
+      const { doc, setDoc, collection, updateDoc, getDocs } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+      
+      if (setAsActive) {
+        // Nonaktifkan TA lama jika diset aktif
+        for (const ta of this.tahunAjaranList) {
+          if (ta.isAktif) {
+            await updateDoc(doc(this.db, "tahun_ajaran", ta.id), { isAktif: false });
+          }
+        }
+        this.activeTahunAjaran = cleanName;
+      }
+
+      await setDoc(doc(this.db, "tahun_ajaran", newId), newDoc);
+    } else {
+      if (setAsActive) {
+        this.tahunAjaranList.forEach(t => t.isAktif = false);
+        this.activeTahunAjaran = cleanName;
+      }
+      this.tahunAjaranList.push(newDoc);
+      this.notifyListeners();
+    }
+
+    return newDoc;
+  }
+
+  // --- FASILITAS MIGRASI DATA KE TAHUN AJARAN BERIKUTNYA ---
+  async migrateDataToNewYear(sourceYear, targetYear, toolmanName) {
+    if (sourceYear === targetYear) {
+      throw new Error("Tahun ajaran asal dan tujuan tidak boleh sama!");
+    }
+
+    // Ambil semua barang dari tahun ajaran asal
+    const sourceItems = this.inventory.filter(i => (i.tahunAjaran || '2026/2027') === sourceYear);
+    if (sourceItems.length === 0) {
+      throw new Error(`Tidak ada data barang di Tahun Ajaran ${sourceYear} untuk dimigrasikan!`);
+    }
+
+    // Cek apakah di targetYear sudah ada data
+    const existingTargetItems = this.inventory.filter(i => (i.tahunAjaran || '2026/2027') === targetYear);
+    if (existingTargetItems.length > 0) {
+      throw new Error(`Tahun Ajaran ${targetYear} sudah memiliki ${existingTargetItems.length} data barang! Migrasi dibatalkan demi keamanan data.`);
+    }
+
+    if (this.db) {
+      const { collection, addDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+      const invCol = collection(this.db, "inventaris");
+
+      let count = 0;
+      for (const item of sourceItems) {
+        const migratedItem = {
+          no: item.no || (++count),
+          kodeBarang: item.kodeBarang,
+          namaBarang: item.namaBarang,
+          fotoBarang: item.fotoBarang || '',
+          spesifikasiMerk: item.spesifikasiMerk || '-',
+          jumlah: item.jumlah || 1,
+          satuan: item.satuan || 'Unit',
+          kondisi: item.kondisi || 'Baik',
+          statusPenggunaan: item.statusPenggunaan || 'Digunakan',
+          tahunPerolehan: item.tahunPerolehan || '2026',
+          sumberDana: item.sumberDana || 'Dana sekolah',
+          lokasiRak: item.lokasiRak || 'Lemari 1',
+          tglCekTerakhir: new Date().toISOString().split('T')[0],
+          keterangan: item.keterangan ? `${item.keterangan} (Migrasi dari TA ${sourceYear})` : `Migrasi dari TA ${sourceYear}`,
+          tahunAjaran: targetYear,
+          migratedFrom: sourceYear,
+          migratedBy: toolmanName,
+          migratedAt: new Date().toISOString()
+        };
+
+        await addDoc(invCol, migratedItem);
+      }
+    }
+
+    this.activeTahunAjaran = targetYear;
+    return sourceItems.length;
   }
 
   // --- Auth & User Password Management ---
@@ -117,9 +257,10 @@ class FirebaseInventoryStore {
     return true;
   }
 
-  // --- CRUD Inventaris ---
-  getAll() {
-    return this.inventory;
+  // --- CRUD Inventaris (Berdasarkan Tahun Ajaran Terpilih) ---
+  getAll(filterTA = null) {
+    const targetTA = filterTA || this.activeTahunAjaran || '2026/2027';
+    return this.inventory.filter(i => (i.tahunAjaran || '2026/2027') === targetTA);
   }
 
   getById(id) {
@@ -127,7 +268,10 @@ class FirebaseInventoryStore {
   }
 
   async addItem(itemData) {
-    itemData.no = this.inventory.length + 1;
+    itemData.tahunAjaran = itemData.tahunAjaran || this.activeTahunAjaran || '2026/2027';
+    const currentYearItems = this.getAll(itemData.tahunAjaran);
+    itemData.no = currentYearItems.length + 1;
+
     if (this.db) {
       const { collection, addDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
       const docRef = await addDoc(collection(this.db, "inventaris"), itemData);
@@ -150,18 +294,19 @@ class FirebaseInventoryStore {
     }
   }
 
-  // Rekapitulasi Kondisi
-  getRekapitulasi() {
+  // Rekapitulasi Kondisi per Tahun Ajaran
+  getRekapitulasi(filterTA = null) {
+    const items = this.getAll(filterTA);
     const rekap = {
       baik: { jenis: 0, unit: 0 },
       rusakRingan: { jenis: 0, unit: 0 },
       rusakBerat: { jenis: 0, unit: 0 },
       hilang: { jenis: 0, unit: 0 },
-      totalJenis: this.inventory.length,
+      totalJenis: items.length,
       totalUnit: 0
     };
 
-    this.inventory.forEach(item => {
+    items.forEach(item => {
       const jml = parseInt(item.jumlah) || 0;
       rekap.totalUnit += jml;
 
@@ -194,6 +339,7 @@ class FirebaseInventoryStore {
 
   async addProposal(propData) {
     propData.status = 'pending';
+    propData.tahunAjaran = propData.tahunAjaran || this.activeTahunAjaran || '2026/2027';
     propData.tanggalUsul = new Date().toISOString().split('T')[0];
 
     if (this.db) {
@@ -233,7 +379,8 @@ class FirebaseInventoryStore {
       sumberDana: 'Dana sekolah',
       lokasiRak: prop.lokasiRak || 'Lemari 1',
       tglCekTerakhir: new Date().toISOString().split('T')[0],
-      keterangan: prop.keterangan || '-'
+      keterangan: prop.keterangan || '-',
+      tahunAjaran: prop.tahunAjaran || this.activeTahunAjaran || '2026/2027'
     });
 
     return prop;

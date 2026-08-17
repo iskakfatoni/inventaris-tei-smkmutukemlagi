@@ -46,5 +46,11 @@ service cloud.firestore {
       allow update: if isToolman() || isKajur();
       allow delete: if isKajur();
     }
+
+    // 4. Koleksi Tahun Ajaran & Migrasi Data
+    match /tahun_ajaran/{taId} {
+      allow read: if isAuthenticated();
+      allow write: if isKajur();
+    }
   }
 }

@@ -1,37 +1,29 @@
 # ATURAN & MATRIKS HAK AKSES PENGGUNA (RBAC)
 ## Inventaris Jurusan Teknik Elektronika Industri (TEI) - SMK MUTU KEMLAGI
 
-> **Password Default Sistem:** `12345`  
-> Setiap pengguna dapat mengubah password mereka secara mandiri kapan saja melalui menu **Ikon Kunci (Ganti Password)** di pojok kanan atas aplikasi.
+> **Tahun Ajaran Aktif:** `2026/2027`  
+> **Password Default Sistem:** `12345`
 
 ---
 
-### 🔑 Daftar Akun Pengguna & Password
+### 🔑 Pembagian Peran & Kewenangan Pengguna
 
-| No | Nama Pengguna | Email Akun | Password Default | Peran (*Role*) | Posisi & Wewenang |
-| :-: | :--- | :--- | :---: | :---: | :--- |
-| **1** | **Akbar Rayhan** | `akbarhasfi020@gmail.com` | `12345` | **Toolman** | **Petugas Utama Master Database** (Input, Edit, Kondisi Alat, Rak, Approval Usulan) |
-| **2** | **Rahayu Sutarini** | `sutarinirs@gmail.com` | `12345` | **Guru** | **Pengusul Kebutuhan Praktik** (Mengajukan usulan alat/modul untuk siswa) |
-| **3** | **M. Iskak Fatoni** | `iskakfatoni@gmail.com` | `12345` | **Kepala Jurusan** | **Supervisi & Audit Log** (Monitoring rekapitulasi sarpras, evaluasi, dan audit) |
-
----
-
-### 🔐 Cara Mengubah Password di Dalam Aplikasi:
-1. Pilih akun Anda di pojok kanan atas.
-2. Klik tombol **Ikon Kunci 🔑 ("Ganti Password Akun")**.
-3. Masukkan **Password Lama** (default: `12345`).
-4. Masukkan **Password Baru** (minimal 5 karakter) dan ulangi pada kolom konfirmasi.
-5. Klik **"Simpan Password"** ➔ Password baru otomatis tersimpan dan aktif di Cloud Firestore!
+| No | Nama Pengguna | Email Akun | Peran (*Role*) | Posisi & Wewenang Utama |
+| :-: | :--- | :--- | :---: | :--- |
+| **1** | **Akbar Rayhan** | `akbarhasfi020@gmail.com` | **Toolman** | **Petugas Utama Master Database:**<br>• Input, edit spesifikasi & jumlah barang<br>• Update kondisi alat (*Baik, Rusak, Hilang*) & rak<br>• **Menambah Tahun Ajaran Baru**<br>• **Eksekusi Fasilitas Migrasi Data ke TA Baru**<br>• Review & approval usulan barang dari Guru |
+| **2** | **Rahayu Sutarini** | `sutarinirs@gmail.com` | **Guru** | **Pengusul Kebutuhan Praktikum:**<br>• Mengajukan usulan alat/modul untuk praktik siswa<br>• Melihat kesiapan alat pada tahun ajaran aktif |
+| **3** | **M. Iskak Fatoni** | `iskakfatoni@gmail.com` | **Kepala Jurusan** | **Supervisi & Audit Log:**<br>• Memantau rekapitulasi kondisi alat per tahun ajaran<br>• Monitoring log riwayat usulan dan arsip tahun ajaran lampau |
 
 ---
 
-### 🛡️ Matriks Kewenangan Operasional
+### 📅 Manajemen Tahun Ajaran & Prosedur Migrasi Data:
 
-| Fitur / Aksi | 🔧 Akbar Rayhan (Toolman) | 👩‍🏫 Rahayu Sutarini (Guru) | 👔 M. Iskak Fatoni (Kajur) |
-| :--- | :---: | :---: | :---: |
-| **Kelola Master Inventaris (Tambah / Edit / Hapus)** | ✅ **Wewenang Penuh (Utama)** | ❌ Dibatasi *(Hanya Pengajuan)* | 🔍 Supervisi & Audit |
-| **Update Kondisi Barang (Baik / Rusak / Hilang)** | ✅ **Wewenang Penuh (Utama)** | ⚠️ Melaporkan ke Toolman | 🔍 Monitoring Rekapitulasi |
-| **Penataan Lokasi / Rak Simpan** | ✅ **Wewenang Penuh (Utama)** | ❌ Dilarang | 🔍 Monitoring Lokasi |
-| **Review & Approval Usulan Guru** | ✅ **Wewenang Penuh (Utama)** | ❌ Dilarang | 🔍 Audit Log Riwayat Usulan |
-| **Pengajuan Usulan Barang Baru** | ✅ Boleh | 📝 **Wewenang Pengusul** | 🔍 Memeriksa Kebutuhan |
-| **Ganti Password Akun Sendiri** | ✅ Boleh | ✅ Boleh | ✅ Boleh |
+1. **Tahun Ajaran Awal:** Sistem berjalan dengan Tahun Ajaran default **`2026/2027`**.
+2. **Tambah Tahun Ajaran Baru:**
+   - Toolman mengklik tombol **Ikon Kalender Plus 📅 ("Kelola Tahun Ajaran")** di pojok kanan atas.
+   - Memasukkan format tahun ajaran baru (contoh: `2027/2028`) ➔ Klik **Tambah TA**.
+3. **Fasilitas Migrasi Data (Tutup Buku / Buka TA Baru):**
+   - Toolman memilih **Tahun Ajaran Asal** (misal: `2026/2027`) dan **Tahun Ajaran Tujuan** (misal: `2027/2028`).
+   - Klik **"Eksekusi Migrasi Data Inventaris"**.
+   - **Otomatisasi:** Sistem akan menyalin seluruh data barang, kondisi fisik terkini, dan lokasi penyimpanan dari tahun ajaran asal ke tahun ajaran baru secara utuh.
+   - **Keamanan Data:** Data di tahun ajaran lama tetap tersimpan sebagai arsip historis dan dapat dibuka kapan saja melalui menu dropdown filter Tahun Ajaran di header.
