@@ -32,8 +32,8 @@ service cloud.firestore {
     // 2. Data Inventaris (Sesuai Kolom Excel)
     match /inventaris/{itemId} {
       allow read: if isAuthenticated();
-      // Toolman & Kajur bisa tambah & edit data barang
-      allow create, update: if isToolman() || isKajur();
+      // Toolman, Guru & Kajur bisa update status/kondisi data barang
+      allow create, update: if isToolman() || isKajur() || isGuru();
       // Hanya Kajur yang berwenang menghapus data barang (Pemutihan Aset)
       allow delete: if isKajur();
     }
