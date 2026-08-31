@@ -1693,6 +1693,76 @@ body {
   border-radius: var(--radius-md);
 }
 
+/* Horizontal Layout untuk Statistik Logbook Peminjaman */
+.loans-stats-horizontal {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  width: 100%;
+}
+
+.loan-stat-card {
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+  min-width: 0;
+}
+
+.loan-stat-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-color-active);
+}
+
+.loan-stat-card .stat-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+
+.loan-stat-card .stat-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.loan-stat-card .stat-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.loan-stat-card .stat-value {
+  font-family: var(--font-heading);
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.15;
+  margin: 2px 0;
+}
+
+.loan-stat-card .stat-sub {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
 /* Mobile Media Queries (Phone Screen <= 768px) */
 @media (max-width: 768px) {
   /* Sembunyikan Tabel Lebar, Tampilkan Kartu Ramah Sentuhan */
@@ -1706,35 +1776,45 @@ body {
     gap: 12px;
   }
 
-  /* 4 Kartu Stat di Mobile menjadi 2x2 Grid */
-  #view-loans .dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+  /* 4 Kartu Stat di Mobile Menyamping (Horizontal Swipeable Track) */
+  .loans-stats-horizontal {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
     gap: 10px;
-    margin-bottom: 16px;
+    padding: 2px 2px 8px 2px;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
   }
 
-  #view-loans .stat-card {
+  .loans-stats-horizontal::-webkit-scrollbar {
+    display: none;
+  }
+
+  .loan-stat-card {
+    flex: 0 0 200px;
     padding: 12px 14px;
+    gap: 10px;
+    scroll-snap-align: start;
   }
 
-  #view-loans .stat-card .stat-icon-wrap {
+  .loan-stat-card .stat-icon-wrap {
     width: 38px;
     height: 38px;
-    font-size: 1.1rem;
-    margin-bottom: 8px;
+    font-size: 1.15rem;
   }
 
-  #view-loans .stat-card .stat-label {
-    font-size: 0.75rem;
+  .loan-stat-card .stat-label {
+    font-size: 0.72rem;
   }
 
-  #view-loans .stat-card .stat-value {
+  .loan-stat-card .stat-value {
     font-size: 1.35rem;
   }
 
-  #view-loans .stat-card .stat-sub {
-    font-size: 0.7rem;
+  .loan-stat-card .stat-sub {
+    font-size: 0.68rem;
   }
 
   /* Toolbar search & filter di mobile */
@@ -1800,5 +1880,6 @@ body {
     padding: 12px;
   }
 }
+
 
 
