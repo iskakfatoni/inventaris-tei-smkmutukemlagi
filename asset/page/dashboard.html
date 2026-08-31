@@ -402,8 +402,16 @@
             </div>
           </div>
 
-          <!-- Tabel Logbook Peminjaman -->
-          <div class="table-card">
+          <!-- Quick Filter Segmented Pills (Khusus Mobile / Touch Screen) -->
+          <div class="loan-filter-pills-wrap">
+            <button type="button" class="loan-pill-btn active" data-loan-filter="all">Semua</button>
+            <button type="button" class="loan-pill-btn" data-loan-filter="Dipinjam">Dipinjam</button>
+            <button type="button" class="loan-pill-btn" data-loan-filter="Terlambat">Terlambat</button>
+            <button type="button" class="loan-pill-btn" data-loan-filter="Kembali">Dikembalikan</button>
+          </div>
+
+          <!-- 1. Tampilan Tabel Desktop & Tablet (> 768px) -->
+          <div class="table-card loans-desktop-table-wrap">
             <div class="table-responsive">
               <table class="custom-table" id="table-loans-logbook">
                 <thead>
@@ -426,6 +434,11 @@
                 </tbody>
               </table>
             </div>
+          </div>
+
+          <!-- 2. Tampilan Kartu Khusus Mobile / Ponsel (<= 768px) -->
+          <div class="loans-mobile-cards-wrap" id="list-loans-mobile">
+            <!-- Rendered via JS from Cloud Firestore as mobile cards -->
           </div>
         </section>
 

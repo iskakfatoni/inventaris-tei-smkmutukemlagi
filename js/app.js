@@ -1514,7 +1514,34 @@ function initLoansManager() {
   if (searchInput) searchInput.addEventListener('input', renderLoansTable);
 
   const filterStatus = document.getElementById('filter-loan-status');
-  if (filterStatus) filterStatus.addEventListener('change', renderLoansTable);
+  if (filterStatus) {
+    filterStatus.addEventListener('change', () => {
+      // Sinkronkan active state pada pills
+      const val = filterStatus.value;
+      document.querySelectorAll('.loan-pill-btn').forEach(btn => {
+        if (btn.getAttribute('data-loan-filter') === val) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+      renderLoansTable();
+    });
+  }
+
+  // Quick Filter Pills (Mobile / Touch Friendly)
+  document.querySelectorAll('.loan-pill-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.loan-pill-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const filterVal = btn.getAttribute('data-loan-filter') || 'all';
+      if (filterStatus) {
+        filterStatus.value = filterVal;
+      }
+      renderLoansTable();
+    });
+  });
 }
 
 function openAddLoanModal() {
@@ -1549,7 +1576,7 @@ function openAddLoanModal() {
   openModal('modal-add-loan');
 }
 
-// Render Tabel Logbook Peminjaman
+// Render Tabel Logbook Peminjaman (Desktop & Mobile Optimized)
 function renderLoansTable() {
   const loans = window.db.getLoans();
   const searchInput = document.getElementById('loan-search-input');
@@ -1610,68 +1637,153 @@ function renderLoansTable() {
     }
   }
 
+  // 1. RENDER TABEL DESKTOP
   const tbody = document.getElementById('tbody-loans-logbook');
-  if (!tbody) return;
-  tbody.innerHTML = '';
+  if (tbody) {
+    tbody.innerHTML = '';
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="11" style="text-align: center; padding: 24px; color: var(--text-dim);">Tidak ada catatan peminjaman alat.</td></tr>`;
+    } else {
+      filtered.forEach((loan, idx) => {
+        const isOverdue = loan.status === 'Dipinjam' && loan.tglKembaliRencana && loan.tglKembaliRencana < today;
+        
+        let statusBadge = '<span class="badge badge-loan-active"><i class="ph-bold ph-clock"></i> Dipinjam</span>';
+        if (isOverdue) {
+          statusBadge = '<span class="badge badge-loan-overdue"><i class="ph-bold ph-warning"></i> Terlambat</span>';
+        } else if (loan.status === 'Kembali') {
+          statusBadge = '<span class="badge badge-loan-returned"><i class="ph-bold ph-check-circle"></i> Selesai Kembali</span>';
+        }
 
-  if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="11" style="text-align: center; padding: 24px; color: var(--text-dim);">Tidak ada catatan peminjaman alat.</td></tr>`;
-    return;
+        let actionButtons = '';
+        if (loan.status === 'Dipinjam') {
+          actionButtons = `
+            <div style="display: flex; justify-content: flex-end; gap: 6px;">
+              <button class="btn btn-sm btn-primary" onclick="openReturnLoanModal('${loan.id}')" title="Proses Pengembalian / Check-in Alat">
+                <i class="ph-bold ph-arrow-u-up-left"></i> Kembalikan
+              </button>
+            </div>
+          `;
+        } else {
+          actionButtons = `
+            <span class="badge badge-asset" style="font-size: 0.75rem; color: var(--color-success);"><i class="ph-bold ph-check"></i> Selesai</span>
+          `;
+        }
+
+        const tglKembaliInfo = loan.status === 'Kembali' 
+          ? `<div><strong>${loan.tglKembaliAktual || '-'}</strong><br><small class="badge badge-${loan.kondisiKembali === 'Baik' ? 'condition-baik' : 'condition-rusak_ringan'}" style="font-size: 0.7rem; padding: 2px 6px;">Kondisi: ${loan.kondisiKembali || 'Baik'}</small></div>`
+          : `<span style="color: var(--text-dim); font-size: 0.8rem;">-</span>`;
+
+        tbody.innerHTML += `
+          <tr>
+            <td style="color: var(--text-dim); text-align: center;">${idx + 1}</td>
+            <td style="color: var(--text-muted); font-size: 0.82rem;">${loan.tglPinjam || '-'}</td>
+            <td>
+              <strong>${loan.namaSiswa}</strong>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">${loan.keperluan || '-'}</div>
+            </td>
+            <td><span class="badge badge-asset" style="font-weight: 600;">${loan.kelasSiswa}</span></td>
+            <td>
+              <span class="code-tag" style="font-size: 0.72rem;">${loan.kodeBarang}</span> 
+              <strong>${loan.namaBarang}</strong>
+            </td>
+            <td><strong>${loan.jumlahPinjam}</strong> <small style="color: var(--text-dim);">${loan.satuan || 'Unit'}</small></td>
+            <td style="color: ${isOverdue ? 'var(--color-danger)' : 'var(--text-main)'}; font-weight: ${isOverdue ? '700' : '500'}; font-size: 0.82rem;">
+              ${loan.tglKembaliRencana || '-'}
+            </td>
+            <td>${statusBadge}</td>
+            <td>${tglKembaliInfo}</td>
+            <td style="color: var(--text-muted); font-size: 0.8rem;">${loan.petugasPinjam || '-'}</td>
+            <td class="text-right">${actionButtons}</td>
+          </tr>
+        `;
+      });
+    }
   }
 
-  filtered.forEach((loan, idx) => {
-    const isOverdue = loan.status === 'Dipinjam' && loan.tglKembaliRencana && loan.tglKembaliRencana < today;
-    
-    let statusBadge = '<span class="badge badge-loan-active"><i class="ph-bold ph-clock"></i> Dipinjam</span>';
-    if (isOverdue) {
-      statusBadge = '<span class="badge badge-loan-overdue"><i class="ph-bold ph-warning"></i> Terlambat</span>';
-    } else if (loan.status === 'Kembali') {
-      statusBadge = '<span class="badge badge-loan-returned"><i class="ph-bold ph-check-circle"></i> Selesai Kembali</span>';
-    }
-
-    let actionButtons = '';
-    if (loan.status === 'Dipinjam') {
-      actionButtons = `
-        <div style="display: flex; justify-content: flex-end; gap: 6px;">
-          <button class="btn btn-sm btn-primary" onclick="openReturnLoanModal('${loan.id}')" title="Proses Pengembalian / Check-in Alat">
-            <i class="ph-bold ph-arrow-u-up-left"></i> Kembalikan
-          </button>
+  // 2. RENDER MOBILE CARDS LIST (KHUSUS PONSEL / TOUCH SCREEN)
+  const mobileContainer = document.getElementById('list-loans-mobile');
+  if (mobileContainer) {
+    mobileContainer.innerHTML = '';
+    if (filtered.length === 0) {
+      mobileContainer.innerHTML = `
+        <div class="table-card" style="text-align: center; padding: 28px 16px; color: var(--text-dim);">
+          <i class="ph-bold ph-hand-coins" style="font-size: 2.2rem; color: var(--text-dim); margin-bottom: 8px; display: block;"></i>
+          <p>Tidak ada catatan peminjaman alat sesuai filter.</p>
         </div>
       `;
     } else {
-      actionButtons = `
-        <span class="badge badge-asset" style="font-size: 0.75rem; color: var(--color-success);"><i class="ph-bold ph-check"></i> Selesai</span>
-      `;
+      filtered.forEach((loan) => {
+        const isOverdue = loan.status === 'Dipinjam' && loan.tglKembaliRencana && loan.tglKembaliRencana < today;
+        let cardStatusClass = 'status-dipinjam';
+        let statusBadge = '<span class="badge badge-loan-active"><i class="ph-bold ph-clock"></i> Dipinjam</span>';
+
+        if (isOverdue) {
+          cardStatusClass = 'status-terlambat';
+          statusBadge = '<span class="badge badge-loan-overdue"><i class="ph-bold ph-warning"></i> Terlambat</span>';
+        } else if (loan.status === 'Kembali') {
+          cardStatusClass = 'status-kembali';
+          statusBadge = '<span class="badge badge-loan-returned"><i class="ph-bold ph-check-circle"></i> Selesai Kembali</span>';
+        }
+
+        let actionBtnHtml = '';
+        if (loan.status === 'Dipinjam') {
+          actionBtnHtml = `
+            <div class="loan-card-footer">
+              <button type="button" class="btn btn-primary btn-block" onclick="openReturnLoanModal('${loan.id}')">
+                <i class="ph-bold ph-arrow-u-up-left"></i> Proses Pengembalian Alat
+              </button>
+            </div>
+          `;
+        }
+
+        const returnDetails = loan.status === 'Kembali'
+          ? `<div style="background: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: var(--radius-sm); padding: 8px 10px; margin-bottom: 10px; font-size: 0.78rem;">
+               <div style="color: var(--color-success); font-weight: 600;"><i class="ph-bold ph-check-circle"></i> Dikembalikan: ${loan.tglKembaliAktual || '-'}</div>
+               <div style="color: var(--text-muted); margin-top: 2px;">Kondisi: <strong>${loan.kondisiKembali || 'Baik'}</strong> • Penerima: <strong>${loan.petugasKembali || '-'}</strong></div>
+               ${loan.catatanKembali && loan.catatanKembali !== '-' ? `<div style="color: var(--text-dim); font-style: italic; margin-top: 2px;">"${loan.catatanKembali}"</div>` : ''}
+             </div>`
+          : '';
+
+        mobileContainer.innerHTML += `
+          <div class="loan-card-mobile ${cardStatusClass}">
+            <div class="loan-card-header">
+              <div class="loan-student-info">
+                <strong>${loan.namaSiswa}</strong>
+                <div class="loan-student-meta">
+                  <span class="badge badge-asset">${loan.kelasSiswa}</span>
+                  <small style="color: var(--text-dim); font-size: 0.75rem;">Petugas: ${loan.petugasPinjam || '-'}</small>
+                </div>
+              </div>
+              <div>${statusBadge}</div>
+            </div>
+
+            <div class="loan-item-box">
+              <div class="loan-item-title">
+                <strong>${loan.namaBarang}</strong>
+                <span class="loan-qty-badge"><i class="ph-bold ph-cube"></i> ${loan.jumlahPinjam} ${loan.satuan || 'Unit'}</span>
+              </div>
+              <span class="code-tag" style="font-size: 0.72rem;">${loan.kodeBarang}</span>
+            </div>
+
+            <div class="loan-dates-grid">
+              <div class="loan-date-col">
+                <span class="loan-date-label">Tgl. Pinjam</span>
+                <span class="loan-date-val">${loan.tglPinjam || '-'}</span>
+              </div>
+              <div class="loan-date-col">
+                <span class="loan-date-label">Batas Kembali</span>
+                <span class="loan-date-val ${isOverdue ? 'overdue' : ''}">${loan.tglKembaliRencana || '-'} ${isOverdue ? '⚠️' : ''}</span>
+              </div>
+            </div>
+
+            ${loan.keperluan ? `<div class="loan-extra-info"><i class="ph-bold ph-info"></i> ${loan.keperluan}</div>` : ''}
+            ${returnDetails}
+            ${actionBtnHtml}
+          </div>
+        `;
+      });
     }
-
-    const tglKembaliInfo = loan.status === 'Kembali' 
-      ? `<div><strong>${loan.tglKembaliAktual || '-'}</strong><br><small class="badge badge-${loan.kondisiKembali === 'Baik' ? 'condition-baik' : 'condition-rusak_ringan'}" style="font-size: 0.7rem; padding: 2px 6px;">Kondisi: ${loan.kondisiKembali || 'Baik'}</small></div>`
-      : `<span style="color: var(--text-dim); font-size: 0.8rem;">-</span>`;
-
-    tbody.innerHTML += `
-      <tr>
-        <td style="color: var(--text-dim); text-align: center;">${idx + 1}</td>
-        <td style="color: var(--text-muted); font-size: 0.82rem;">${loan.tglPinjam || '-'}</td>
-        <td>
-          <strong>${loan.namaSiswa}</strong>
-          <div style="font-size: 0.75rem; color: var(--text-muted);">${loan.keperluan || '-'}</div>
-        </td>
-        <td><span class="badge badge-asset" style="font-weight: 600;">${loan.kelasSiswa}</span></td>
-        <td>
-          <span class="code-tag" style="font-size: 0.72rem;">${loan.kodeBarang}</span> 
-          <strong>${loan.namaBarang}</strong>
-        </td>
-        <td><strong>${loan.jumlahPinjam}</strong> <small style="color: var(--text-dim);">${loan.satuan || 'Unit'}</small></td>
-        <td style="color: ${isOverdue ? 'var(--color-danger)' : 'var(--text-main)'}; font-weight: ${isOverdue ? '700' : '500'}; font-size: 0.82rem;">
-          ${loan.tglKembaliRencana || '-'}
-        </td>
-        <td>${statusBadge}</td>
-        <td>${tglKembaliInfo}</td>
-        <td style="color: var(--text-muted); font-size: 0.8rem;">${loan.petugasPinjam || '-'}</td>
-        <td class="text-right">${actionButtons}</td>
-      </tr>
-    `;
-  });
+  }
 }
 
 // Modal Verifikasi Pengembalian

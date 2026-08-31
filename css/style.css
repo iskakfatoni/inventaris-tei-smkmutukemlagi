@@ -1497,3 +1497,308 @@ body {
   50% { opacity: 0.65; }
 }
 
+/* ===================================================
+   MOBILE-FIRST OPTIMIZATIONS FOR PEMINJAMAN ALAT
+   =================================================== */
+
+/* Filter Pills (Segmented Control for Mobile) */
+.loan-filter-pills-wrap {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px 14px 2px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.loan-filter-pills-wrap::-webkit-scrollbar {
+  display: none;
+}
+
+.loan-pill-btn {
+  padding: 7px 16px;
+  border-radius: 20px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.loan-pill-btn:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-main);
+}
+
+.loan-pill-btn.active {
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+  color: #0B0F17;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+}
+
+/* Dual Mode Display: Desktop Table vs Mobile Cards */
+.loans-desktop-table-wrap {
+  display: block;
+}
+
+.loans-mobile-cards-wrap {
+  display: none;
+}
+
+/* Mobile Loan Card Design */
+.loan-card-mobile {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.loan-card-mobile.status-dipinjam {
+  border-left: 4px solid var(--color-warning);
+}
+
+.loan-card-mobile.status-terlambat {
+  border-left: 4px solid var(--color-danger);
+  border-color: rgba(239, 68, 68, 0.35);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.03) 0%, var(--bg-card) 100%);
+}
+
+.loan-card-mobile.status-kembali {
+  border-left: 4px solid var(--color-success);
+}
+
+.loan-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.loan-student-info strong {
+  display: block;
+  font-size: 1.02rem;
+  color: var(--text-main);
+  line-height: 1.3;
+}
+
+.loan-student-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.loan-item-box {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.loan-item-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.loan-item-title strong {
+  font-size: 0.95rem;
+  color: var(--text-main);
+}
+
+.loan-qty-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(6, 182, 212, 0.1);
+  color: var(--accent-cyan);
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.loan-dates-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  font-size: 0.78rem;
+  margin-bottom: 12px;
+  background: rgba(0, 0, 0, 0.15);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+}
+
+.loan-date-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.loan-date-label {
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.loan-date-val {
+  font-weight: 600;
+  color: var(--text-main);
+  margin-top: 2px;
+}
+
+.loan-date-val.overdue {
+  color: var(--color-danger);
+  font-weight: 700;
+}
+
+.loan-extra-info {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.loan-extra-info i {
+  color: var(--accent-cyan);
+  margin-right: 4px;
+}
+
+.loan-card-footer {
+  margin-top: 10px;
+}
+
+.loan-card-footer .btn {
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  justify-content: center;
+  border-radius: var(--radius-md);
+}
+
+/* Mobile Media Queries (Phone Screen <= 768px) */
+@media (max-width: 768px) {
+  /* Sembunyikan Tabel Lebar, Tampilkan Kartu Ramah Sentuhan */
+  .loans-desktop-table-wrap {
+    display: none;
+  }
+
+  .loans-mobile-cards-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* 4 Kartu Stat di Mobile menjadi 2x2 Grid */
+  #view-loans .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  #view-loans .stat-card {
+    padding: 12px 14px;
+  }
+
+  #view-loans .stat-card .stat-icon-wrap {
+    width: 38px;
+    height: 38px;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+  }
+
+  #view-loans .stat-card .stat-label {
+    font-size: 0.75rem;
+  }
+
+  #view-loans .stat-card .stat-value {
+    font-size: 1.35rem;
+  }
+
+  #view-loans .stat-card .stat-sub {
+    font-size: 0.7rem;
+  }
+
+  /* Toolbar search & filter di mobile */
+  #view-loans .filter-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  #view-loans .search-input-wrap {
+    width: 100%;
+  }
+
+  #view-loans .filter-group {
+    display: none; /* Digantikan oleh quick filter pills yang jauh lebih mudah disentuh */
+  }
+
+  /* Modal Form Optimization for Mobile */
+  #modal-add-loan .modal-card,
+  #modal-return-loan .modal-card {
+    width: 95%;
+    max-height: 92vh;
+    padding: 0;
+    border-radius: var(--radius-lg);
+  }
+
+  #modal-add-loan .modal-header,
+  #modal-return-loan .modal-header {
+    padding: 14px 18px;
+  }
+
+  #modal-add-loan .modal-body,
+  #modal-return-loan .modal-body {
+    padding: 16px 18px;
+    max-height: calc(92vh - 130px);
+    overflow-y: auto;
+  }
+
+  #modal-add-loan .modal-footer,
+  #modal-return-loan .modal-footer {
+    padding: 12px 18px;
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+
+  #modal-add-loan .modal-footer .btn,
+  #modal-return-loan .modal-footer .btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 0.95rem;
+    justify-content: center;
+  }
+
+  /* Form Inputs on Mobile (Prevent iOS Auto-zoom & High Touch Comfort) */
+  #modal-add-loan input,
+  #modal-add-loan select,
+  #modal-add-loan textarea,
+  #modal-return-loan input,
+  #modal-return-loan select,
+  #modal-return-loan textarea {
+    font-size: 16px;
+    padding: 12px;
+  }
+}
+
+
