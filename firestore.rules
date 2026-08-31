@@ -51,7 +51,14 @@ service cloud.firestore {
     // 4. Koleksi Tahun Ajaran & Migrasi Data
     match /tahun_ajaran/{taId} {
       allow read: if isAuthenticated();
-      allow write: if isKajur();
+      allow write: if isKajur() || isToolman();
+    }
+
+    // 5. Koleksi Peminjaman Alat Siswa (Logbook Peminjaman)
+    match /peminjaman_alat/{loanId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isToolman() || isKajur();
     }
   }
 }

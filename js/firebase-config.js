@@ -19,6 +19,7 @@ class FirebaseInventoryStore {
     this.firebaseConfig = firebaseConfig;
     this.inventory = [];
     this.proposals = [];
+    this.loans = [];
     this.users = [];
     this.tahunAjaranList = [];
     this.activeTahunAjaran = '2026/2027';
@@ -79,7 +80,25 @@ class FirebaseInventoryStore {
         console.warn("Firestore usulan_barang listener:", err.message);
       });
 
-      // 4. Realtime listener untuk koleksi users
+      // 4. Realtime listener untuk koleksi peminjaman_alat
+      const loanCol = collection(this.db, "peminjaman_alat");
+      onSnapshot(loanCol, (snapshot) => {
+        this.loans = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            tahunAjaran: data.tahunAjaran || '2026/2027',
+            ...data
+          };
+        });
+        // Urutkan dari yang terbaru
+        this.loans.sort((a, b) => new Date(b.createdAt || b.tglPinjam || 0) - new Date(a.createdAt || a.tglPinjam || 0));
+        this.notifyListeners();
+      }, (err) => {
+        console.warn("Firestore peminjaman_alat listener:", err.message);
+      });
+
+      // 5. Realtime listener untuk koleksi users
       const usersCol = collection(this.db, "users");
       onSnapshot(usersCol, async (snapshot) => {
         if (!snapshot.empty) {
@@ -508,7 +527,169 @@ class FirebaseInventoryStore {
 
     return prop;
   }
+
+  // --- LOGBOOK PEMINJAMAN ALAT SISWA (REKOMENDASI NO. 2) ---
+  getLoans(filterTA = null) {
+    const targetTA = filterTA || this.activeTahunAjaran || '2026/2027';
+    return this.loans.filter(l => (l.tahunAjaran || '2026/2027') === targetTA);
+  }
+
+  getLoanById(id) {
+    return this.loans.find(l => l.id === id);
+  }
+
+  getLoanStats(filterTA = null) {
+    const loans = this.getLoans(filterTA);
+    const today = new Date().toISOString().split('T')[0];
+
+    const stats = {
+      total: loans.length,
+      dipinjam: 0,
+      kembali: 0,
+      terlambat: 0,
+      totalUnitDipinjam: 0
+    };
+
+    loans.forEach(l => {
+      const jml = parseInt(l.jumlahPinjam) || 1;
+      if (l.status === 'Dipinjam') {
+        stats.dipinjam += 1;
+        stats.totalUnitDipinjam += jml;
+        if (l.tglKembaliRencana && l.tglKembaliRencana < today) {
+          stats.terlambat += 1;
+        }
+      } else if (l.status === 'Kembali') {
+        stats.kembali += 1;
+      }
+    });
+
+    return stats;
+  }
+
+  async addLoan(loanData) {
+    loanData.tahunAjaran = loanData.tahunAjaran || this.activeTahunAjaran || '2026/2027';
+    loanData.status = 'Dipinjam';
+    loanData.createdAt = new Date().toISOString();
+
+    if (this.db) {
+      const { collection, addDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+      const docRef = await addDoc(collection(this.db, "peminjaman_alat"), loanData);
+      loanData.id = docRef.id;
+      return loanData;
+    } else {
+      loanData.id = 'loan-' + Date.now();
+      this.loans.unshift(loanData);
+      this.notifyListeners();
+      return loanData;
+    }
+  }
+
+  async returnLoan(loanId, returnData) {
+    const loan = this.loans.find(l => l.id === loanId);
+    if (!loan) throw new Error("Data peminjaman tidak ditemukan.");
+
+    const updatePayload = {
+      status: 'Kembali',
+      tglKembaliAktual: returnData.tglKembaliAktual || new Date().toISOString().split('T')[0],
+      kondisiKembali: returnData.kondisiKembali || 'Baik',
+      catatanKembali: returnData.catatanKembali || '-',
+      petugasKembali: returnData.petugasKembali || 'Toolman',
+      updatedAt: new Date().toISOString()
+    };
+
+    if (this.db) {
+      const { doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+      await updateDoc(doc(this.db, "peminjaman_alat", loanId), updatePayload);
+    } else {
+      Object.assign(loan, updatePayload);
+      this.notifyListeners();
+    }
+
+    // Jika kondisi saat kembali bukan 'Baik' (misal rusak/hilang), update kondisi pada inventaris master
+    if (returnData.updateMasterKondisi && loan.itemId && returnData.kondisiKembali !== 'Baik') {
+      try {
+        await this.updateItem(loan.itemId, {
+          kondisi: returnData.kondisiKembali,
+          tglCekTerakhir: new Date().toISOString().split('T')[0],
+          keterangan: `Kondisi diperbarui pasca peminjaman oleh ${loan.namaSiswa || 'Siswa'} (${returnData.catatanKembali || '-'})`
+        });
+      } catch (e) {
+        console.warn("Gagal update kondisi master barang pasca pengembalian:", e);
+      }
+    }
+
+    return Object.assign(loan, updatePayload);
+  }
+
+  async deleteLoan(loanId) {
+    if (this.db) {
+      const { doc, deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+      await deleteDoc(doc(this.db, "peminjaman_alat", loanId));
+    } else {
+      this.loans = this.loans.filter(l => l.id !== loanId);
+      this.notifyListeners();
+    }
+  }
+
+  // --- KOMPRESI & PENGELOLAAN FOTO BARANG (REKOMENDASI NO. 3) ---
+  static async compressImageFile(file, maxWidth = 800, maxHeight = 800, quality = 0.75) {
+    return new Promise((resolve, reject) => {
+      if (!file || !file.type.startsWith('image/')) {
+        return reject(new Error("Berkas yang dipilih bukan gambar!"));
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+
+          // Hitung rasio aspek
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          // Antialiasing halus
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Coba simpan ke WebP, fallback ke JPEG
+          let dataUrl = canvas.toDataURL('image/webp', quality);
+          if (!dataUrl.startsWith('data:image/webp')) {
+            dataUrl = canvas.toDataURL('image/jpeg', quality);
+          }
+
+          resolve({
+            dataUrl: dataUrl,
+            width: width,
+            height: height,
+            sizeKb: Math.round(dataUrl.length / 1024)
+          });
+        };
+        img.onerror = () => reject(new Error("Gagal membaca berkas gambar."));
+        img.src = e.target.result;
+      };
+      reader.onerror = () => reject(new Error("Gagal memproses file."));
+      reader.readAsDataURL(file);
+    });
+  }
 }
 
 window.db = new FirebaseInventoryStore();
 window.db.initFirebase();
+

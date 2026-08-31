@@ -145,6 +145,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initModals();
     initForms();
     initFilters();
+    initPhotoUpload();
+    initLoansManager();
     initDashboardLogout();
     renderTahunAjaranDropdowns();
     updateRoleUI();
@@ -178,6 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initTahunAjaranManager();
     initFilters();
     initDashboardLogout();
+    initModals();
     renderTahunAjaranDropdowns();
     populateLokasiFilter();
     renderInventoryTable();
@@ -732,6 +735,7 @@ function populateLokasiFilter() {
 function refreshAll() {
   renderInventoryTable();
   renderRekapitulasi();
+  renderLoansTable();
   renderProposalsTable();
 }
 
@@ -779,6 +783,15 @@ function renderInventoryTable() {
     if (item.kondisi === 'Rusak Berat') kondisiBadge = 'badge-condition-rusak_berat';
     if (item.kondisi === 'Hilang') kondisiBadge = 'badge-condition-afkir';
 
+    // Foto Thumbnail (Rekomendasi No. 3)
+    const photoHtml = item.fotoBarang
+      ? `<div class="item-table-thumb-wrap" onclick="openLightbox('${item.id}')" title="Klik untuk melihat foto beresolusi penuh">
+           <img src="${item.fotoBarang}" class="item-table-thumb" alt="${item.namaBarang}">
+         </div>`
+      : `<div class="item-table-thumb-wrap" title="Belum ada foto">
+           <i class="ph-bold ph-package item-thumb-placeholder"></i>
+         </div>`;
+
     let actionButtons = '';
     if (userRole === 'toolman') {
       // Toolman: Petugas Utama (Akses Penuh Edit & Hapus Master)
@@ -815,7 +828,14 @@ function renderInventoryTable() {
       <tr>
         <td style="color: var(--text-dim); text-align: center;">${item.no}</td>
         <td><span class="code-tag">${item.kodeBarang}</span></td>
-        <td><strong>${item.namaBarang}</strong></td>
+        <td>
+          <div class="item-cell-with-photo">
+            ${photoHtml}
+            <div>
+              <strong>${item.namaBarang}</strong>
+            </div>
+          </div>
+        </td>
         <td style="color: var(--text-muted);">${item.spesifikasiMerk || '-'}</td>
         <td><strong>${item.jumlah}</strong> <small style="color: var(--text-dim);">${item.satuan}</small></td>
         <td><span class="badge ${kondisiBadge}">${item.kondisi}</span></td>
@@ -1010,6 +1030,7 @@ function initForms() {
       const payload = {
         kodeBarang: getVal('item-kode', 'form-kode'),
         namaBarang: getVal('item-nama', 'form-nama'),
+        fotoBarang: document.getElementById('item-foto-data') ? document.getElementById('item-foto-data').value : '',
         spesifikasiMerk: getVal('item-spesifikasi', 'form-spek') || '-',
         jumlah: parseInt(getVal('item-jumlah', 'form-jumlah')) || 1,
         satuan: getVal('item-satuan', 'form-satuan') || 'Unit',
@@ -1150,6 +1171,16 @@ function openItemModal(itemData = null) {
     if (el) el.value = val;
   };
 
+  // Reset Dropzone Foto
+  const fotoInput = document.getElementById('item-foto-data');
+  const previewBox = document.getElementById('item-photo-preview-box');
+  const previewImg = document.getElementById('item-photo-preview-img');
+  const previewName = document.getElementById('item-photo-preview-name');
+  const previewSize = document.getElementById('item-photo-preview-size');
+  const fileInput = document.getElementById('item-foto-file-input');
+
+  if (fileInput) fileInput.value = '';
+
   if (itemData) {
     const titleEl = document.getElementById('modal-item-title');
     if (titleEl) titleEl.innerHTML = '<i class="ph-bold ph-pencil"></i> Edit Master Inventaris (Toolman)';
@@ -1166,11 +1197,24 @@ function openItemModal(itemData = null) {
     setVal('item-lokasi', 'form-lokasi', itemData.lokasiRak || 'Lemari 1');
     setVal('item-tgl-cek', 'form-tgl-cek', itemData.tglCekTerakhir || '');
     setVal('item-keterangan', 'form-keterangan', itemData.keterangan || '');
+
+    if (itemData.fotoBarang) {
+      if (fotoInput) fotoInput.value = itemData.fotoBarang;
+      if (previewImg) previewImg.src = itemData.fotoBarang;
+      if (previewName) previewName.textContent = `${itemData.namaBarang}.webp`;
+      if (previewSize) previewSize.textContent = `Tersimpan di database`;
+      if (previewBox) previewBox.style.display = 'flex';
+    } else {
+      if (fotoInput) fotoInput.value = '';
+      if (previewBox) previewBox.style.display = 'none';
+    }
   } else {
     const titleEl = document.getElementById('modal-item-title');
     if (titleEl) titleEl.innerHTML = '<i class="ph-bold ph-cube"></i> Tambah Master Inventaris (Toolman)';
     setVal('form-item-id', 'item-id', '');
     setVal('item-tgl-cek', 'form-tgl-cek', new Date().toISOString().split('T')[0]);
+    if (fotoInput) fotoInput.value = '';
+    if (previewBox) previewBox.style.display = 'none';
   }
   openModal('modal-item');
 }
@@ -1245,7 +1289,429 @@ window.openReviewModal = function(propId) {
 };
 
 /* ===================================================
-   5. FILTERS & SEARCH
+   5. PHOTO UPLOAD & LIGHTBOX PREVIEW (REKOMENDASI NO. 3)
+   =================================================== */
+
+function initPhotoUpload() {
+  const dropzone = document.getElementById('item-photo-dropzone');
+  const fileInput = document.getElementById('item-foto-file-input');
+  const fotoDataInput = document.getElementById('item-foto-data');
+  const previewBox = document.getElementById('item-photo-preview-box');
+  const previewImg = document.getElementById('item-photo-preview-img');
+  const previewName = document.getElementById('item-photo-preview-name');
+  const previewSize = document.getElementById('item-photo-preview-size');
+  const btnRemove = document.getElementById('btn-remove-item-photo');
+
+  if (!dropzone || !fileInput) return;
+
+  // Klik dropzone memicu file picker
+  dropzone.addEventListener('click', () => fileInput.click());
+
+  // Drag and Drop
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dropzone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    dropzone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+    });
+  });
+
+  dropzone.addEventListener('drop', async (e) => {
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      await processSelectedPhoto(files[0]);
+    }
+  });
+
+  fileInput.addEventListener('change', async (e) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      await processSelectedPhoto(files[0]);
+    }
+  });
+
+  if (btnRemove) {
+    btnRemove.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (fileInput) fileInput.value = '';
+      if (fotoDataInput) fotoDataInput.value = '';
+      if (previewBox) previewBox.style.display = 'none';
+      showToast('Foto barang dihapus', 'info');
+    });
+  }
+
+  async function processSelectedPhoto(file) {
+    if (!file.type.startsWith('image/')) {
+      showToast('Berkas yang dipilih harus berupa gambar (JPG/PNG/WebP)!', 'error');
+      return;
+    }
+
+    try {
+      showToast('Mengompresi foto barang...', 'info');
+      const compressed = await FirebaseInventoryStore.compressImageFile(file, 800, 800, 0.75);
+
+      if (fotoDataInput) fotoDataInput.value = compressed.dataUrl;
+      if (previewImg) previewImg.src = compressed.dataUrl;
+      if (previewName) previewName.textContent = file.name;
+      if (previewSize) previewSize.textContent = `${compressed.sizeKb} KB (Terkompresi WebP)`;
+      if (previewBox) previewBox.style.display = 'flex';
+
+      showToast(`Foto berhasil dioptimasi (${compressed.sizeKb} KB)!`, 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Gagal memproses foto: ' + err.message, 'error');
+    }
+  }
+}
+
+// Lightbox Preview Zoom
+window.openLightbox = function(itemId) {
+  const item = window.db.getById(itemId);
+  if (!item || !item.fotoBarang) return;
+
+  const previewImg = document.getElementById('lightbox-preview-img');
+  const captionName = document.getElementById('lightbox-item-name');
+  const captionMeta = document.getElementById('lightbox-item-meta');
+
+  if (previewImg) previewImg.src = item.fotoBarang;
+  if (captionName) captionName.textContent = item.namaBarang;
+  if (captionMeta) captionMeta.textContent = `${item.kodeBarang} • ${item.spesifikasiMerk || '-'} • Lokasi: ${item.lokasiRak || 'Lemari 1'}`;
+
+  openModal('modal-image-preview');
+};
+
+/* ===================================================
+   6. LOGBOOK PEMINJAMAN ALAT SISWA (REKOMENDASI NO. 2)
+   =================================================== */
+
+let activeReturnLoanId = null;
+
+function initLoansManager() {
+  const btnOpenAddLoan = document.getElementById('btn-open-add-loan');
+  if (btnOpenAddLoan) {
+    btnOpenAddLoan.addEventListener('click', () => {
+      openAddLoanModal();
+    });
+  }
+
+  // Listener pilih barang pada modal pinjam
+  const selectItem = document.getElementById('loan-item-select');
+  const stockHint = document.getElementById('loan-stock-hint');
+  const qtyInput = document.getElementById('loan-qty');
+
+  if (selectItem) {
+    selectItem.addEventListener('change', () => {
+      const itemId = selectItem.value;
+      if (!itemId) {
+        if (stockHint) stockHint.textContent = 'Stok tersedia: -';
+        if (qtyInput) qtyInput.removeAttribute('max');
+        return;
+      }
+
+      const item = window.db.getById(itemId);
+      if (item) {
+        const availableStock = parseInt(item.jumlah) || 1;
+        if (stockHint) stockHint.textContent = `Stok tersedia di rak: ${availableStock} ${item.satuan} (${item.lokasiRak})`;
+        if (qtyInput) {
+          qtyInput.max = availableStock;
+          if (parseInt(qtyInput.value) > availableStock) {
+            qtyInput.value = availableStock;
+          }
+        }
+      }
+    });
+  }
+
+  // Form Tambah Pinjam Baru
+  const formAddLoan = document.getElementById('form-add-loan');
+  if (formAddLoan) {
+    formAddLoan.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const itemId = document.getElementById('loan-item-select').value;
+      const studentName = document.getElementById('loan-student-name').value.trim();
+      const studentClass = document.getElementById('loan-student-class').value.trim();
+      const qty = parseInt(document.getElementById('loan-qty').value) || 1;
+      const dateStart = document.getElementById('loan-date-start').value;
+      const dateDue = document.getElementById('loan-date-due').value;
+      const purpose = document.getElementById('loan-purpose').value.trim();
+
+      const item = window.db.getById(itemId);
+      if (!item) {
+        showToast('Pilih barang yang valid!', 'error');
+        return;
+      }
+
+      const availableStock = parseInt(item.jumlah) || 1;
+      if (qty > availableStock) {
+        showToast(`Jumlah pinjam (${qty}) melebihi stok tersedia (${availableStock})!`, 'error');
+        return;
+      }
+
+      const payload = {
+        itemId: item.id,
+        kodeBarang: item.kodeBarang,
+        namaBarang: item.namaBarang,
+        namaSiswa: studentName,
+        kelasSiswa: studentClass,
+        jumlahPinjam: qty,
+        satuan: item.satuan || 'Unit',
+        tglPinjam: dateStart,
+        tglKembaliRencana: dateDue,
+        keperluan: purpose,
+        petugasPinjam: currentUser ? `${currentUser.name} (${currentUser.roleTitle})` : 'Toolman TEI',
+        tahunAjaran: window.db.getActiveTahunAjaran()
+      };
+
+      try {
+        await window.db.addLoan(payload);
+        showToast(`Peminjaman ${qty} ${item.satuan} "${item.namaBarang}" untuk ${studentName} berhasil dicatat!`, 'success');
+        closeModal('modal-add-loan');
+        refreshAll();
+      } catch (err) {
+        showToast('Gagal mencatat peminjaman: ' + err.message, 'error');
+      }
+    });
+  }
+
+  // Form Verifikasi Pengembalian (Check-in)
+  const formReturnLoan = document.getElementById('form-return-loan');
+  if (formReturnLoan) {
+    formReturnLoan.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!activeReturnLoanId) return;
+
+      const actualDate = document.getElementById('return-actual-date').value;
+      const condition = document.getElementById('return-condition').value;
+      const updateMaster = document.getElementById('return-update-master').checked;
+      const notes = document.getElementById('return-notes').value.trim();
+
+      try {
+        const result = await window.db.returnLoan(activeReturnLoanId, {
+          tglKembaliAktual: actualDate,
+          kondisiKembali: condition,
+          updateMasterKondisi: updateMaster,
+          catatanKembali: notes,
+          petugasKembali: currentUser ? `${currentUser.name} (${currentUser.roleTitle})` : 'Toolman TEI'
+        });
+
+        showToast(`Pengembalian alat "${result.namaBarang}" dari ${result.namaSiswa} berhasil dikonfirmasi!`, 'success');
+        closeModal('modal-return-loan');
+        refreshAll();
+      } catch (err) {
+        showToast('Gagal memproses pengembalian: ' + err.message, 'error');
+      }
+    });
+  }
+
+  // Search & Filter Listeners for Loans
+  const searchInput = document.getElementById('loan-search-input');
+  if (searchInput) searchInput.addEventListener('input', renderLoansTable);
+
+  const filterStatus = document.getElementById('filter-loan-status');
+  if (filterStatus) filterStatus.addEventListener('change', renderLoansTable);
+}
+
+function openAddLoanModal() {
+  const form = document.getElementById('form-add-loan');
+  if (form) form.reset();
+
+  // Set default dates
+  const todayStr = new Date().toISOString().split('T')[0];
+  const dueDefault = new Date(Date.now() + 86400000).toISOString().split('T')[0]; // +1 hari
+
+  const dateStartEl = document.getElementById('loan-date-start');
+  const dateDueEl = document.getElementById('loan-date-due');
+  if (dateStartEl) dateStartEl.value = todayStr;
+  if (dateDueEl) dateDueEl.value = dueDefault;
+
+  // Populate item dropdown with available tools in current TA
+  const selectItem = document.getElementById('loan-item-select');
+  if (selectItem) {
+    selectItem.innerHTML = '<option value="">-- Pilih Barang dari Master Inventaris --</option>';
+    const items = window.db.getAll();
+    items.forEach(item => {
+      const stock = parseInt(item.jumlah) || 0;
+      if (stock > 0 && item.kondisi !== 'Hilang' && item.kondisi !== 'Rusak Berat') {
+        selectItem.innerHTML += `<option value="${item.id}">${item.kodeBarang} - ${item.namaBarang} (Stok: ${stock} ${item.satuan} • ${item.lokasiRak})</option>`;
+      }
+    });
+  }
+
+  const stockHint = document.getElementById('loan-stock-hint');
+  if (stockHint) stockHint.textContent = 'Pilih barang untuk melihat ketersediaan stok';
+
+  openModal('modal-add-loan');
+}
+
+// Render Tabel Logbook Peminjaman
+function renderLoansTable() {
+  const loans = window.db.getLoans();
+  const searchInput = document.getElementById('loan-search-input');
+  const statusSelect = document.getElementById('filter-loan-status');
+
+  const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
+  const filterStatusVal = statusSelect ? statusSelect.value : 'all';
+  const today = new Date().toISOString().split('T')[0];
+
+  const filtered = loans.filter(loan => {
+    const isOverdue = loan.status === 'Dipinjam' && loan.tglKembaliRencana && loan.tglKembaliRencana < today;
+    const computedStatus = isOverdue ? 'Terlambat' : loan.status;
+
+    const matchSearch = (loan.namaSiswa && loan.namaSiswa.toLowerCase().includes(search)) ||
+                        (loan.kelasSiswa && loan.kelasSiswa.toLowerCase().includes(search)) ||
+                        (loan.namaBarang && loan.namaBarang.toLowerCase().includes(search)) ||
+                        (loan.kodeBarang && loan.kodeBarang.toLowerCase().includes(search)) ||
+                        (loan.keperluan && loan.keperluan.toLowerCase().includes(search));
+
+    let matchStatus = true;
+    if (filterStatusVal === 'Dipinjam') {
+      matchStatus = loan.status === 'Dipinjam';
+    } else if (filterStatusVal === 'Terlambat') {
+      matchStatus = isOverdue;
+    } else if (filterStatusVal === 'Kembali') {
+      matchStatus = loan.status === 'Kembali';
+    }
+
+    return matchSearch && matchStatus;
+  });
+
+  // Render Stat Cards & Badge
+  const stats = window.db.getLoanStats();
+  const statTotal = document.getElementById('loan-stat-total');
+  const statDipinjam = document.getElementById('loan-stat-dipinjam');
+  const statUnitDipinjam = document.getElementById('loan-stat-unit-dipinjam');
+  const statTerlambat = document.getElementById('loan-stat-terlambat');
+  const statKembali = document.getElementById('loan-stat-kembali');
+  const navBadge = document.getElementById('nav-loans-badge');
+
+  if (statTotal) statTotal.textContent = stats.total;
+  if (statDipinjam) statDipinjam.textContent = stats.dipinjam;
+  if (statUnitDipinjam) statUnitDipinjam.textContent = `${stats.totalUnitDipinjam} unit alat di luar`;
+  if (statTerlambat) statTerlambat.textContent = stats.terlambat;
+  if (statKembali) statKembali.textContent = stats.kembali;
+
+  if (navBadge) {
+    if (stats.dipinjam > 0) {
+      navBadge.textContent = stats.dipinjam;
+      navBadge.style.display = 'inline-block';
+      if (stats.terlambat > 0) {
+        navBadge.className = 'badge badge-loan-overdue';
+      } else {
+        navBadge.className = 'badge badge-loan-active';
+      }
+    } else {
+      navBadge.style.display = 'none';
+    }
+  }
+
+  const tbody = document.getElementById('tbody-loans-logbook');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align: center; padding: 24px; color: var(--text-dim);">Tidak ada catatan peminjaman alat.</td></tr>`;
+    return;
+  }
+
+  filtered.forEach((loan, idx) => {
+    const isOverdue = loan.status === 'Dipinjam' && loan.tglKembaliRencana && loan.tglKembaliRencana < today;
+    
+    let statusBadge = '<span class="badge badge-loan-active"><i class="ph-bold ph-clock"></i> Dipinjam</span>';
+    if (isOverdue) {
+      statusBadge = '<span class="badge badge-loan-overdue"><i class="ph-bold ph-warning"></i> Terlambat</span>';
+    } else if (loan.status === 'Kembali') {
+      statusBadge = '<span class="badge badge-loan-returned"><i class="ph-bold ph-check-circle"></i> Selesai Kembali</span>';
+    }
+
+    let actionButtons = '';
+    if (loan.status === 'Dipinjam') {
+      actionButtons = `
+        <div style="display: flex; justify-content: flex-end; gap: 6px;">
+          <button class="btn btn-sm btn-primary" onclick="openReturnLoanModal('${loan.id}')" title="Proses Pengembalian / Check-in Alat">
+            <i class="ph-bold ph-arrow-u-up-left"></i> Kembalikan
+          </button>
+        </div>
+      `;
+    } else {
+      actionButtons = `
+        <span class="badge badge-asset" style="font-size: 0.75rem; color: var(--color-success);"><i class="ph-bold ph-check"></i> Selesai</span>
+      `;
+    }
+
+    const tglKembaliInfo = loan.status === 'Kembali' 
+      ? `<div><strong>${loan.tglKembaliAktual || '-'}</strong><br><small class="badge badge-${loan.kondisiKembali === 'Baik' ? 'condition-baik' : 'condition-rusak_ringan'}" style="font-size: 0.7rem; padding: 2px 6px;">Kondisi: ${loan.kondisiKembali || 'Baik'}</small></div>`
+      : `<span style="color: var(--text-dim); font-size: 0.8rem;">-</span>`;
+
+    tbody.innerHTML += `
+      <tr>
+        <td style="color: var(--text-dim); text-align: center;">${idx + 1}</td>
+        <td style="color: var(--text-muted); font-size: 0.82rem;">${loan.tglPinjam || '-'}</td>
+        <td>
+          <strong>${loan.namaSiswa}</strong>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">${loan.keperluan || '-'}</div>
+        </td>
+        <td><span class="badge badge-asset" style="font-weight: 600;">${loan.kelasSiswa}</span></td>
+        <td>
+          <span class="code-tag" style="font-size: 0.72rem;">${loan.kodeBarang}</span> 
+          <strong>${loan.namaBarang}</strong>
+        </td>
+        <td><strong>${loan.jumlahPinjam}</strong> <small style="color: var(--text-dim);">${loan.satuan || 'Unit'}</small></td>
+        <td style="color: ${isOverdue ? 'var(--color-danger)' : 'var(--text-main)'}; font-weight: ${isOverdue ? '700' : '500'}; font-size: 0.82rem;">
+          ${loan.tglKembaliRencana || '-'}
+        </td>
+        <td>${statusBadge}</td>
+        <td>${tglKembaliInfo}</td>
+        <td style="color: var(--text-muted); font-size: 0.8rem;">${loan.petugasPinjam || '-'}</td>
+        <td class="text-right">${actionButtons}</td>
+      </tr>
+    `;
+  });
+}
+
+// Modal Verifikasi Pengembalian
+window.openReturnLoanModal = function(loanId) {
+  const loan = window.db.getLoanById(loanId);
+  if (!loan) return;
+
+  activeReturnLoanId = loan.id;
+  const summaryBox = document.getElementById('return-loan-summary-box');
+  if (summaryBox) {
+    summaryBox.innerHTML = `
+      <div style="margin-bottom: 6px;">
+        Peminjam: <strong style="color: var(--accent-cyan);">${loan.namaSiswa}</strong> (${loan.kelasSiswa})
+      </div>
+      <div style="margin-bottom: 6px;">
+        Barang: <strong>${loan.namaBarang}</strong> (<span class="code-tag">${loan.kodeBarang}</span>)
+      </div>
+      <div style="margin-bottom: 4px; color: var(--text-muted);">
+        Jumlah Dipinjam: <strong>${loan.jumlahPinjam} ${loan.satuan || 'Unit'}</strong> • Tgl. Pinjam: <strong>${loan.tglPinjam}</strong>
+      </div>
+      <div style="color: var(--text-dim); font-size: 0.78rem;">
+        Batas Kembali: <strong>${loan.tglKembaliRencana}</strong>
+      </div>
+    `;
+  }
+
+  const returnDateEl = document.getElementById('return-actual-date');
+  if (returnDateEl) returnDateEl.value = new Date().toISOString().split('T')[0];
+
+  const conditionEl = document.getElementById('return-condition');
+  if (conditionEl) conditionEl.value = 'Baik';
+
+  const notesEl = document.getElementById('return-notes');
+  if (notesEl) notesEl.value = 'Alat dikembalikan lengkap dan dalam kondisi baik.';
+
+  openModal('modal-return-loan');
+};
+
+/* ===================================================
+   7. FILTERS & SEARCH
    =================================================== */
 
 function initFilters() {
@@ -1263,7 +1729,7 @@ function initFilters() {
 }
 
 /* ===================================================
-   6. TOAST
+   8. TOAST
    =================================================== */
 
 function showToast(message, type = 'info') {
@@ -1281,3 +1747,4 @@ function showToast(message, type = 'info') {
     setTimeout(() => toast.remove(), 300);
   }, 3500);
 }
+

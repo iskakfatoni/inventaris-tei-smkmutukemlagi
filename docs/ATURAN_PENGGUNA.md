@@ -29,3 +29,32 @@
    - Klik **"Eksekusi Migrasi Data Inventaris"**.
    - **Otomatisasi:** Sistem akan menyalin seluruh data barang, kondisi fisik terkini, dan lokasi penyimpanan dari tahun ajaran asal ke tahun ajaran baru secara utuh.
    - **Keamanan Data:** Data di tahun ajaran lama tetap tersimpan sebagai arsip historis dan dapat dibuka kapan saja melalui menu dropdown filter Tahun Ajaran di header.
+
+---
+
+### 🔄 SOP Logbook Peminjaman & Pengembalian Alat Siswa (Check-out & Check-in):
+
+1. **Pencatatan Peminjaman Baru:**
+   - Guru / Toolman membuka menu **Peminjaman Alat** di bilah navigasi kiri.
+   - Klik **"Catat Peminjaman Baru"**.
+   - Pilih modul/alat praktikum dari inventaris (stok tersedia tertera otomatis).
+   - Masukkan identitas siswa/kelompok, kelas (contoh: `XI TEI 1`), jumlah unit, serta estimasi tanggal batas kembali.
+2. **Monitoring & Status:**
+   - **Dipinjam (Kuning):** Alat sedang aktif dibawa siswa untuk kegiatan praktikum.
+   - **Terlambat (Merah berkedip):** Melewati tanggal batas rencana kembali dan perlu ditindaklanjuti.
+   - **Selesai Kembali (Hijau):** Telah dikembalikan dan diverifikasi kondisinya oleh Toolman.
+3. **Verifikasi Pengembalian (Check-in):**
+   - Klik tombol **"Kembalikan"** pada baris transaksi siswa terkait.
+   - Periksa kondisi fisik alat (*Baik*, *Rusak Ringan*, *Rusak Berat*, *Hilang*).
+   - Jika terdapat kerusakan atau alat hilang, centang opsi sinkronisasi otomatis agar catatan kondisi barang pada master database langsung terbarui.
+
+---
+
+### 📸 Manajemen & Kompresi Foto Barang:
+
+1. **Unggah Foto Cerdas (*Client-Side Compression*):**
+   - Saat menambah atau mengedit barang master, klik area Dropzone Foto atau seret berkas gambar (JPG, PNG, WebP).
+   - Sistem secara otomatis mengompresi foto menjadi format WebP beresolusi tinggi dengan ukuran sangat ringan (< 40 KB) sehingga hemat kuota Firestore dan cepat dimuat.
+2. **Lightbox Viewer:**
+   - Klik pada thumbnail foto di baris tabel inventaris untuk membuka pratinjau resolusi penuh.
+

@@ -2,6 +2,16 @@
 
 Sistem Informasi Manajemen Inventaris Alat, Trainer Kit, dan Komponen Praktikum berbasis Cloud Real-Time untuk **Jurusan Teknik Elektronika Industri (TEI) - SMK Muhammadiyah 1 Kemlagi (SMK MUTU KEMLAGI)**.
 
+✨ **Fitur Unggulan Sistem:**
+- 📦 **Master Inventaris Format 14 Kolom Standar Excel**
+- 🔄 **Logbook Peminjaman Alat Siswa (Check-out & Check-in)**
+- 📸 **Upload & Kompresi Foto Barang Cerdas (WebP Client-Side + Lightbox Viewer)**
+- 📊 **Rekapitulasi Kesiapan & Kondisi Fisik Real-Time**
+- 📅 **Multi-Tahun Ajaran & Migrasi Data Antar-TA (Tutup Buku)**
+- 📥 **Import & Export Template Excel (.xlsx)**
+- 📝 **Alur Usulan Barang Guru ➔ Approval Toolman ➔ Audit Kajur**
+- 📱 **Progressive Web App (PWA) & Windows Desktop App Mode**
+
 🌐 **Website Resmi:** [https://iskakfatoni.github.io/inventaris-tei-smkmutukemlagi/](https://iskakfatoni.github.io/inventaris-tei-smkmutukemlagi/)
 
 ---

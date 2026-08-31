@@ -115,6 +115,11 @@
             <i class="ph-bold ph-chart-pie-slice"></i>
             <span>Rekapitulasi Kondisi</span>
           </button>
+          <button class="nav-item" data-view="loans">
+            <i class="ph-bold ph-hand-coins"></i>
+            <span>Peminjaman Alat</span>
+            <span class="badge badge-loan-active" id="nav-loans-badge" style="display:none; margin-left: auto; font-size: 0.65rem; padding: 2px 6px;">0</span>
+          </button>
           <button class="nav-item" data-view="proposals">
             <i class="ph-bold ph-git-pull-request"></i>
             <span>Usulan & Approval</span>
@@ -320,6 +325,110 @@
           </div>
         </section>
 
+        <!-- ================= VIEW 4: LOGBOOK PEMINJAMAN ALAT SISWA (REKOMENDASI NO. 2) ================= -->
+        <section id="view-loans" class="content-view">
+          <div class="page-title-bar">
+            <div>
+              <h2>Logbook Peminjaman Alat & Modul Praktikum Siswa</h2>
+              <p class="subtitle">Pencatatan sirkulasi check-out & check-in alat praktikum Bengkel TEI</p>
+            </div>
+            <div class="action-buttons">
+              <button class="btn btn-primary" id="btn-open-add-loan">
+                <i class="ph-bold ph-plus"></i> <span>Catat Peminjaman Baru</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 4 Kartu Status Peminjaman -->
+          <div class="dashboard-grid" style="margin-bottom: 24px;">
+            <div class="stat-card">
+              <div class="stat-icon-wrap" style="background: rgba(6, 182, 212, 0.1); color: var(--accent-cyan);">
+                <i class="ph-bold ph-hand-coins"></i>
+              </div>
+              <div class="stat-info">
+                <span class="stat-label">Total Transaksi</span>
+                <div class="stat-value" id="loan-stat-total">0</div>
+                <span class="stat-sub">Semua riwayat peminjaman</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon-wrap" style="background: rgba(245, 158, 11, 0.1); color: var(--color-warning);">
+                <i class="ph-bold ph-clock-countdown"></i>
+              </div>
+              <div class="stat-info">
+                <span class="stat-label">Sedang Dipinjam</span>
+                <div class="stat-value" id="loan-stat-dipinjam">0</div>
+                <span class="stat-sub" id="loan-stat-unit-dipinjam">0 unit alat di luar</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon-wrap" style="background: rgba(239, 68, 68, 0.1); color: var(--color-danger);">
+                <i class="ph-bold ph-warning-circle"></i>
+              </div>
+              <div class="stat-info">
+                <span class="stat-label">Terlambat Kembali</span>
+                <div class="stat-value" id="loan-stat-terlambat">0</div>
+                <span class="stat-sub">Melewati batas waktu</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon-wrap" style="background: rgba(16, 185, 129, 0.1); color: var(--color-success);">
+                <i class="ph-bold ph-check-circle"></i>
+              </div>
+              <div class="stat-info">
+                <span class="stat-label">Selesai Dikembalikan</span>
+                <div class="stat-value" id="loan-stat-kembali">0</div>
+                <span class="stat-sub">Telah diverifikasi Toolman</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filter & Search Toolbar Logbook -->
+          <div class="filter-toolbar">
+            <div class="search-input-wrap">
+              <i class="ph ph-magnifying-glass"></i>
+              <input type="text" id="loan-search-input" placeholder="Cari nama siswa, kelas, alat, atau keperluan...">
+            </div>
+            <div class="filter-group">
+              <select id="filter-loan-status" class="filter-select">
+                <option value="all">Semua Status</option>
+                <option value="Dipinjam">Sedang Dipinjam</option>
+                <option value="Terlambat">Terlambat</option>
+                <option value="Kembali">Sudah Dikembalikan</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Tabel Logbook Peminjaman -->
+          <div class="table-card">
+            <div class="table-responsive">
+              <table class="custom-table" id="table-loans-logbook">
+                <thead>
+                  <tr>
+                    <th style="width: 45px; text-align: center;">No</th>
+                    <th>Tgl. Pinjam</th>
+                    <th>Nama Siswa / Peminjam</th>
+                    <th>Kelas / Jurusan</th>
+                    <th>Barang / Alat Dipinjam</th>
+                    <th>Jml</th>
+                    <th>Batas Kembali</th>
+                    <th>Status</th>
+                    <th>Tgl. Kembali & Kondisi</th>
+                    <th>Petugas</th>
+                    <th style="text-align: right; width: 140px;">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-loans-logbook">
+                  <!-- Rendered via JS from Cloud Firestore -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
       </main>
     </div>
   </div>
@@ -402,6 +511,32 @@
             <div class="form-group">
               <label>Tgl. Cek Terakhir</label>
               <input type="date" id="item-tgl-cek">
+            </div>
+          </div>
+
+          <!-- Upload Foto Barang (Rekomendasi No. 3) -->
+          <div class="form-group">
+            <label><i class="ph-bold ph-camera"></i> Foto Barang / Alat (Opsional)</label>
+            <input type="hidden" id="item-foto-data">
+            <input type="file" id="item-foto-file-input" accept="image/*" style="display: none;">
+            
+            <div class="item-photo-dropzone" id="item-photo-dropzone">
+              <div class="photo-dropzone-content">
+                <i class="ph-bold ph-image-square"></i>
+                <p><strong>Klik untuk memilih foto</strong> atau seret file gambar ke sini</p>
+                <small>Format: JPG, PNG, WebP (Otomatis dikompresi ringan & tajam)</small>
+              </div>
+            </div>
+
+            <div class="photo-preview-container" id="item-photo-preview-box" style="display: none;">
+              <img src="" alt="Preview Foto" class="photo-preview-img" id="item-photo-preview-img">
+              <div class="photo-preview-meta">
+                <strong id="item-photo-preview-name">foto-barang.webp</strong>
+                <small id="item-photo-preview-size">0 KB</small>
+              </div>
+              <button type="button" class="btn btn-sm btn-secondary" style="color: var(--color-danger);" id="btn-remove-item-photo" title="Hapus Foto">
+                <i class="ph-bold ph-trash"></i> Hapus
+              </button>
             </div>
           </div>
 
@@ -742,6 +877,139 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-primary" data-close="modal-rbac-info">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Catat Peminjaman Alat Siswa Baru (Rekomendasi No. 2) -->
+  <div class="modal-overlay" id="modal-add-loan">
+    <div class="modal-card" style="max-width: 560px;">
+      <div class="modal-header">
+        <h3><i class="ph-bold ph-hand-coins"></i> Catat Peminjaman Alat Siswa</h3>
+        <button class="btn-close-modal" data-close="modal-add-loan"><i class="ph-bold ph-x"></i></button>
+      </div>
+      <form id="form-add-loan">
+        <div class="modal-body">
+          <div class="alert-box alert-info" style="margin-bottom: 14px; padding: 10px 14px;">
+            <i class="ph-fill ph-info"></i>
+            <div class="alert-content">
+              <strong style="font-size: 0.85rem;">SOP Peminjaman Alat Praktikum</strong>
+              <p style="font-size: 0.78rem; margin-top: 2px;">Pastikan identitas siswa, jumlah barang, dan estimasi waktu pengembalian tercatat dengan tepat.</p>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Pilih Alat / Modul Praktikum <span class="required">*</span></label>
+            <select id="loan-item-select" required>
+              <option value="">-- Pilih Barang dari Master Inventaris --</option>
+            </select>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nama Lengkap Siswa / Peminjam <span class="required">*</span></label>
+              <input type="text" id="loan-student-name" placeholder="Contoh: Ahmad Dani" required>
+            </div>
+            <div class="form-group">
+              <label>Kelas / Jurusan <span class="required">*</span></label>
+              <input type="text" id="loan-student-class" placeholder="Contoh: XI TEI 1" required>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Jumlah Unit Dipinjam <span class="required">*</span></label>
+              <input type="number" id="loan-qty" min="1" value="1" required>
+              <small id="loan-stock-hint" style="color: var(--accent-cyan); font-size: 0.75rem; margin-top: 4px; display: block;">Stok tersedia: -</small>
+            </div>
+            <div class="form-group">
+              <label>Tgl. Peminjaman <span class="required">*</span></label>
+              <input type="date" id="loan-date-start" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Batas Waktu Pengembalian (Rencana) <span class="required">*</span></label>
+            <input type="date" id="loan-date-due" required>
+          </div>
+
+          <div class="form-group">
+            <label>Keperluan Praktikum / Modul <span class="required">*</span></label>
+            <textarea id="loan-purpose" rows="2" placeholder="Contoh: Praktik Sistem Kendali Elektronik (SKE) Modul Mikrokontroler..." required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close="modal-add-loan">Batal</button>
+          <button type="submit" class="btn btn-primary"><i class="ph-bold ph-check"></i> Simpan Peminjaman</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Proses Pengembalian / Check-in Alat (Rekomendasi No. 2) -->
+  <div class="modal-overlay" id="modal-return-loan">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3><i class="ph-bold ph-arrow-u-up-left"></i> Verifikasi Pengembalian Alat</h3>
+        <button class="btn-close-modal" data-close="modal-return-loan"><i class="ph-bold ph-x"></i></button>
+      </div>
+      <form id="form-return-loan">
+        <input type="hidden" id="return-loan-id">
+        <div class="modal-body">
+          <div id="return-loan-summary-box" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 16px; font-size: 0.84rem; line-height: 1.6;">
+            <!-- Rendered via JS -->
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Tgl. Pengembalian Aktual <span class="required">*</span></label>
+              <input type="date" id="return-actual-date" required>
+            </div>
+            <div class="form-group">
+              <label>Kondisi Alat Saat Kembali <span class="required">*</span></label>
+              <select id="return-condition" required>
+                <option value="Baik">Baik (Lengkap & Berfungsi)</option>
+                <option value="Rusak Ringan">Rusak Ringan (Perlu Servis)</option>
+                <option value="Rusak Berat">Rusak Berat (Komponen Terbakar/Patah)</option>
+                <option value="Hilang">Hilang (Tidak Dikembalikan)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.82rem; margin-bottom: 8px;">
+              <input type="checkbox" id="return-update-master" checked style="width: auto;">
+              <span>Otomatis sinkronkan catatan kondisi alat ke Master Inventaris jika ada kerusakan</span>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label>Catatan Pengembalian / Kelengkapan</label>
+            <textarea id="return-notes" rows="2" placeholder="Contoh: Alat dikembalikan lengkap dengan kabel USB dan modul ekstensi..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close="modal-return-loan">Batal</button>
+          <button type="submit" class="btn btn-primary"><i class="ph-bold ph-check-circle"></i> Konfirmasi Pengembalian</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Lightbox Preview Foto Beresolusi Penuh (Rekomendasi No. 3) -->
+  <div class="modal-overlay" id="modal-image-preview">
+    <div class="modal-card" style="max-width: 720px; background: transparent; box-shadow: none; border: none;">
+      <div class="lightbox-body">
+        <div style="position: absolute; top: 12px; right: 12px; z-index: 10;">
+          <button class="btn-close-modal" data-close="modal-image-preview" style="background: rgba(0,0,0,0.6); color: #fff;"><i class="ph-bold ph-x"></i></button>
+        </div>
+        <img src="" alt="Foto Barang" id="lightbox-preview-img" class="lightbox-img">
+        <div class="lightbox-caption">
+          <div>
+            <strong id="lightbox-item-name" style="color: #fff; font-size: 1rem;">Arduino Uno R3</strong>
+            <div id="lightbox-item-meta" style="color: var(--accent-cyan); font-size: 0.8rem; margin-top: 2px;">TEI-ARD-002 • Lemari 1</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
