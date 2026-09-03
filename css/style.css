@@ -479,7 +479,8 @@ body {
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 12px;
   padding: 16px 12px;
   flex-shrink: 0;
   transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), padding 0.25s ease;
@@ -677,6 +678,12 @@ body {
   display: block !important;
   opacity: 1 !important;
   visibility: visible !important;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 16px;
+  width: 100%;
 }
 
 .lab-info-card {
