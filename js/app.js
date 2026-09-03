@@ -693,12 +693,14 @@ function initSidebarToggle() {
   const btnHeaderToggle = document.getElementById('btn-toggle-sidebar');
   const btnSidebarFold = document.getElementById('btn-sidebar-fold');
 
-  // Muat status fold dari localStorage
+  // Muat status fold dari localStorage (default: false / unfold terbuka)
   const isCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
   if (isCollapsed) {
     sidebar.classList.add('collapsed');
-    updateSidebarToggleUI(true);
+  } else {
+    sidebar.classList.remove('collapsed');
   }
+  updateSidebarToggleUI(isCollapsed);
 
   function toggleSidebar() {
     const willCollapse = !sidebar.classList.contains('collapsed');
@@ -710,14 +712,13 @@ function initSidebarToggle() {
   function updateSidebarToggleUI(collapsed) {
     if (btnHeaderToggle) {
       btnHeaderToggle.title = collapsed ? 'Buka Panel Menu Samping' : 'Lipat Panel Menu Samping';
-      btnHeaderToggle.setAttribute('aria-expanded', !collapsed);
-      const icon = btnHeaderToggle.querySelector('i');
-      if (icon) {
-        icon.className = collapsed ? 'ph-bold ph-sidebar' : 'ph-bold ph-sidebar-simple';
-      }
+      btnHeaderToggle.setAttribute('aria-expanded', String(!collapsed));
+      btnHeaderToggle.innerHTML = `<i class="ph-bold ${collapsed ? 'ph-sidebar' : 'ph-sidebar-simple'}"></i>`;
     }
     if (btnSidebarFold) {
       btnSidebarFold.title = collapsed ? 'Buka Menu Samping' : 'Lipat Menu Samping';
+      btnSidebarFold.setAttribute('aria-label', collapsed ? 'Buka Menu Samping' : 'Lipat Menu Samping');
+      btnSidebarFold.innerHTML = `<i class="ph-bold ${collapsed ? 'ph-caret-right' : 'ph-caret-left'}"></i>`;
     }
   }
 
