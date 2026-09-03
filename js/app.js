@@ -141,6 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initTahunAjaranManager();
     initExcelImportAndExport();
+    initSidebarToggle();
     initNavigation();
     initModals();
     initForms();
@@ -676,6 +677,62 @@ function updateRoleUI() {
       actionBtn.style.display = 'inline-flex';
       actionBtn.onclick = () => openProposalModal();
     }
+  }
+}
+
+/* ===================================================
+   SIDEBAR FOLD / UNFOLD MANAGER
+   =================================================== */
+
+const SIDEBAR_COLLAPSED_KEY = 'INVENTARIS_SIDEBAR_COLLAPSED';
+
+function initSidebarToggle() {
+  const sidebar = document.getElementById('app-sidebar');
+  if (!sidebar) return;
+
+  const btnHeaderToggle = document.getElementById('btn-toggle-sidebar');
+  const btnSidebarFold = document.getElementById('btn-sidebar-fold');
+
+  // Muat status fold dari localStorage
+  const isCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
+  if (isCollapsed) {
+    sidebar.classList.add('collapsed');
+    updateSidebarToggleUI(true);
+  }
+
+  function toggleSidebar() {
+    const willCollapse = !sidebar.classList.contains('collapsed');
+    sidebar.classList.toggle('collapsed', willCollapse);
+    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, willCollapse ? 'true' : 'false');
+    updateSidebarToggleUI(willCollapse);
+  }
+
+  function updateSidebarToggleUI(collapsed) {
+    if (btnHeaderToggle) {
+      btnHeaderToggle.title = collapsed ? 'Buka Panel Menu Samping' : 'Lipat Panel Menu Samping';
+      btnHeaderToggle.setAttribute('aria-expanded', !collapsed);
+      const icon = btnHeaderToggle.querySelector('i');
+      if (icon) {
+        icon.className = collapsed ? 'ph-bold ph-sidebar' : 'ph-bold ph-sidebar-simple';
+      }
+    }
+    if (btnSidebarFold) {
+      btnSidebarFold.title = collapsed ? 'Buka Menu Samping' : 'Lipat Menu Samping';
+    }
+  }
+
+  if (btnHeaderToggle) {
+    btnHeaderToggle.addEventListener('click', (e) => {
+      e.preventDefault();
+      toggleSidebar();
+    });
+  }
+
+  if (btnSidebarFold) {
+    btnSidebarFold.addEventListener('click', (e) => {
+      e.preventDefault();
+      toggleSidebar();
+    });
   }
 }
 

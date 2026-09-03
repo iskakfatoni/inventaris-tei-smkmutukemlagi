@@ -122,10 +122,14 @@
 }
 
 /* Reset & Base */
-* {
+*, *::before, *::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+html {
+  overflow-x: auto;
 }
 
 body {
@@ -135,12 +139,21 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow-x: hidden;
+  overflow-x: auto;
   line-height: 1.5;
   transition: background-color 0.25s ease, color 0.25s ease;
   background-image: 
     radial-gradient(circle at 10% 20%, rgba(6, 182, 212, 0.04) 0%, transparent 40%),
     radial-gradient(circle at 90% 80%, rgba(99, 102, 241, 0.04) 0%, transparent 40%);
+}
+
+#screen-app,
+#screen-guest {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
 }
 
 /* Scrollbars */
@@ -281,17 +294,20 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
+  padding: 0 20px;
   position: sticky;
   top: 0;
   z-index: 100;
   transition: background 0.25s ease, border-color 0.25s ease;
+  min-width: max-content;
+  width: 100%;
 }
 
 .header-left, .header-right {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 .brand-logo {
@@ -446,12 +462,14 @@ body {
 }
 
 /* ===================================================
-   LAYOUT & SIDEBAR
+   LAYOUT & SIDEBAR (FOLD / UNFOLD SUPPORT)
    =================================================== */
 
 .app-layout {
   display: flex;
   flex: 1;
+  width: 100%;
+  min-width: 0;
 }
 
 .app-sidebar {
@@ -461,8 +479,52 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 20px 14px;
+  padding: 16px 12px;
   flex-shrink: 0;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), padding 0.25s ease;
+  position: relative;
+}
+
+.sidebar-top-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 6px 12px 6px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+}
+
+.sidebar-section-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: opacity 0.2s ease;
+}
+
+.sidebar-collapse-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.sidebar-collapse-btn:hover {
+  background: var(--bg-card-hover);
+  color: var(--accent-cyan);
+  border-color: var(--accent-cyan);
 }
 
 .sidebar-nav {
@@ -475,7 +537,7 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 14px;
+  padding: 11px 13px;
   border-radius: var(--radius-md);
   border: none;
   background: transparent;
@@ -486,11 +548,21 @@ body {
   transition: all 0.2s ease;
   width: 100%;
   text-align: left;
+  position: relative;
+  white-space: nowrap;
 }
 
 .nav-item i {
   font-size: 1.25rem;
+  flex-shrink: 0;
   transition: transform 0.2s ease;
+}
+
+.nav-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity 0.2s ease;
 }
 
 .nav-item:hover {
@@ -509,6 +581,63 @@ body {
   color: var(--accent-cyan);
 }
 
+/* ==================== FOLDED / COLLAPSED SIDEBAR STATE ==================== */
+.app-sidebar.collapsed {
+  width: 68px;
+  padding: 16px 8px;
+}
+
+.app-sidebar.collapsed .sidebar-section-title {
+  opacity: 0;
+  width: 0;
+  display: none;
+}
+
+.app-sidebar.collapsed .sidebar-top-header {
+  justify-content: center;
+  padding: 2px 0 12px 0;
+}
+
+.app-sidebar.collapsed .sidebar-collapse-btn i {
+  transform: rotate(180deg);
+}
+
+.app-sidebar.collapsed .nav-item {
+  justify-content: center;
+  padding: 12px 0;
+  gap: 0;
+}
+
+.app-sidebar.collapsed .nav-label {
+  display: none;
+}
+
+.app-sidebar.collapsed .nav-item .badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  margin-left: 0 !important;
+  padding: 2px 5px !important;
+  font-size: 0.62rem !important;
+  min-width: 16px;
+  text-align: center;
+  border-radius: 10px;
+}
+
+.app-sidebar.collapsed .lab-info-card {
+  padding: 8px 4px;
+  justify-content: center;
+}
+
+.app-sidebar.collapsed .lab-info-text {
+  display: none;
+}
+
+.app-sidebar.collapsed .lab-info-card img {
+  width: 38px;
+  height: 38px;
+}
+
 .lab-info-card {
   display: flex;
   align-items: center;
@@ -517,6 +646,7 @@ body {
   padding: 12px 14px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
 }
 
 .lab-info-card img {
@@ -529,21 +659,21 @@ body {
   box-shadow: 0 0 12px rgba(6, 182, 212, 0.35);
   object-fit: contain;
   flex-shrink: 0;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, width 0.2s ease, height 0.2s ease;
 }
 
 .lab-info-card img:hover {
   transform: scale(1.08);
 }
 
-.lab-info-card strong {
+.lab-info-text strong {
   display: block;
   font-size: 0.84rem;
   color: var(--text-main);
   line-height: 1.2;
 }
 
-.lab-info-card small {
+.lab-info-text small {
   font-size: 0.72rem;
   color: var(--text-dim);
 }
@@ -557,7 +687,9 @@ body {
   padding: 24px 32px;
   width: 100%;
   max-width: 100%;
+  min-width: 0;
   box-sizing: border-box;
+  transition: padding 0.25s ease;
 }
 
 .content-view {
@@ -1311,17 +1443,33 @@ body {
     width: 100%;
     border-right: none;
     border-bottom: 1px solid var(--border-color);
+    padding: 10px 14px;
+  }
+  .sidebar-top-header {
+    display: none;
+  }
+  .app-sidebar.collapsed {
+    display: none;
   }
   .sidebar-nav {
     flex-direction: row;
     overflow-x: auto;
-    padding-bottom: 8px;
+    padding-bottom: 4px;
+    gap: 8px;
   }
   .nav-item {
     white-space: nowrap;
+    padding: 8px 12px;
+    width: auto;
+  }
+  .nav-label {
+    display: inline !important;
+  }
+  .app-sidebar .sidebar-footer {
+    display: none;
   }
   .app-content {
-    padding: 20px 16px;
+    padding: 16px 12px;
   }
 }
 

@@ -43,6 +43,9 @@
     <!-- Header -->
     <header class="app-header">
       <div class="header-left">
+        <button class="btn-icon" id="btn-toggle-sidebar" title="Lipat / Buka Panel Menu Samping" aria-label="Toggle Sidebar">
+          <i class="ph-bold ph-sidebar-simple"></i>
+        </button>
         <div class="brand-logo">
           <div class="logo-icon">
             <img src="../image/logo-tei.webp" alt="Logo TEI">
@@ -105,32 +108,39 @@
     <!-- Layout Container -->
     <div class="app-layout">
       <!-- Sidebar -->
-      <aside class="app-sidebar">
+      <aside class="app-sidebar" id="app-sidebar">
+        <div class="sidebar-top-header">
+          <span class="sidebar-section-title">Menu Utama</span>
+          <button type="button" class="sidebar-collapse-btn" id="btn-sidebar-fold" title="Lipat / Buka Menu Samping">
+            <i class="ph-bold ph-caret-left"></i>
+          </button>
+        </div>
+
         <nav class="sidebar-nav">
-          <button class="nav-item active" data-view="inventory">
+          <button class="nav-item active" data-view="inventory" title="Data Inventaris (Sheet 1 Excel)">
             <i class="ph-bold ph-table"></i>
-            <span>Data Inventaris</span>
+            <span class="nav-label">Data Inventaris</span>
           </button>
-          <button class="nav-item" data-view="rekap">
+          <button class="nav-item" data-view="rekap" title="Rekapitulasi Kondisi (Sheet 2 Excel)">
             <i class="ph-bold ph-chart-pie-slice"></i>
-            <span>Rekapitulasi Kondisi</span>
+            <span class="nav-label">Rekapitulasi Kondisi</span>
           </button>
-          <button class="nav-item" data-view="loans">
+          <button class="nav-item" data-view="loans" title="Peminjaman Alat">
             <i class="ph-bold ph-hand-coins"></i>
-            <span>Peminjaman Alat</span>
+            <span class="nav-label">Peminjaman Alat</span>
             <span class="badge badge-loan-active" id="nav-loans-badge" style="display:none; margin-left: auto; font-size: 0.65rem; padding: 2px 6px;">0</span>
           </button>
-          <button class="nav-item" data-view="proposals">
+          <button class="nav-item" data-view="proposals" title="Usulan & Approval">
             <i class="ph-bold ph-git-pull-request"></i>
-            <span>Usulan & Approval</span>
+            <span class="nav-label">Usulan & Approval</span>
             <span class="badge badge-condition-rusak_ringan" id="nav-pending-badge" style="display:none; margin-left: auto; font-size: 0.65rem; padding: 2px 6px;">1</span>
           </button>
         </nav>
 
         <div class="sidebar-footer">
-          <div class="lab-info-card">
+          <div class="lab-info-card" title="Bengkel TEI - SMK Muhammadiyah 1 Kemlagi">
             <img src="../image/logo-smkmutu.webp" alt="Logo SMK MUTU">
-            <div>
+            <div class="lab-info-text">
               <strong>Bengkel TEI</strong>
               <small>SMK Muhammadiyah 1 Kemlagi</small>
             </div>
