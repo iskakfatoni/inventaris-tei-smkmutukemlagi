@@ -129,7 +129,7 @@
 }
 
 html {
-  overflow-x: auto;
+  overflow-x: auto !important;
 }
 
 body {
@@ -139,7 +139,8 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow-x: auto;
+  overflow-x: auto !important;
+  min-width: 1080px;
   line-height: 1.5;
   transition: background-color 0.25s ease, color 0.25s ease;
   background-image: 
@@ -153,7 +154,7 @@ body {
   display: flex;
   flex-direction: column;
   width: 100%;
-  min-width: 0;
+  min-width: 1080px;
 }
 
 /* Scrollbars */
@@ -299,7 +300,7 @@ body {
   top: 0;
   z-index: 100;
   transition: background 0.25s ease, border-color 0.25s ease;
-  min-width: max-content;
+  min-width: 1080px;
   width: 100%;
 }
 
@@ -469,7 +470,7 @@ body {
   display: flex;
   flex: 1;
   width: 100%;
-  min-width: 0;
+  min-width: 1080px;
 }
 
 .app-sidebar {

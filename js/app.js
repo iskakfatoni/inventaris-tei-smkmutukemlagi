@@ -179,12 +179,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     initTahunAjaranManager();
+    initSidebarToggle();
+    initNavigation();
     initFilters();
     initDashboardLogout();
     initModals();
     renderTahunAjaranDropdowns();
     populateLokasiFilter();
     renderInventoryTable();
+    renderRekapitulasi();
 
     // Realtime Cloud Firestore sync listener
     if (window.db && typeof window.db.subscribe === 'function') {
@@ -192,6 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderTahunAjaranDropdowns();
         populateLokasiFilter();
         renderInventoryTable();
+        renderRekapitulasi();
       });
     }
   }
@@ -723,17 +727,17 @@ function initSidebarToggle() {
   }
 
   if (btnHeaderToggle) {
-    btnHeaderToggle.addEventListener('click', (e) => {
+    btnHeaderToggle.onclick = (e) => {
       e.preventDefault();
       toggleSidebar();
-    });
+    };
   }
 
   if (btnSidebarFold) {
-    btnSidebarFold.addEventListener('click', (e) => {
+    btnSidebarFold.onclick = (e) => {
       e.preventDefault();
       toggleSidebar();
-    });
+    };
   }
 }
 
