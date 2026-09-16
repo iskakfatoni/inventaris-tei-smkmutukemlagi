@@ -847,12 +847,12 @@ function renderInventoryTable() {
     return matchSearch && matchKondisi && matchLokasi && matchStatus;
   });
 
-  const tbody = document.getElementById('tbody-excel-inventory');
+  const tbody = document.getElementById('tbody-excel-inventory') || document.getElementById('tbody-master-excel');
   if (!tbody) return;
   tbody.innerHTML = '';
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="12" style="text-align: center; padding: 24px; color: var(--text-dim);">Tidak ditemukan data barang.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="13" style="text-align: center; padding: 24px; color: var(--text-dim);">Tidak ditemukan data barang.</td></tr>`;
     return;
   }
 
@@ -874,13 +874,11 @@ function renderInventoryTable() {
          </div>`;
 
     let actionButtons = '';
-    const qrBtn = `<button class="btn btn-sm btn-secondary" onclick="openQrLabel('${item.id}')" title="Lihat & Cetak Label QR Code"><i class="ph-bold ph-qr-code"></i></button>`;
 
     if (userRole === 'toolman') {
       // Toolman: Petugas Utama (Akses Penuh Edit & Hapus Master)
       actionButtons = `
         <div style="display: flex; justify-content: flex-end; gap: 6px;">
-          ${qrBtn}
           <button class="btn btn-sm btn-secondary" onclick="editItem('${item.id}')" title="Edit Data Barang (Petugas Utama)">
             <i class="ph ph-pencil-simple"></i> Edit
           </button>
@@ -893,35 +891,31 @@ function renderInventoryTable() {
       // Guru: Pengusul
       actionButtons = `
         <div style="display: flex; justify-content: flex-end; gap: 6px;">
-          ${qrBtn}
           <button class="btn btn-sm btn-secondary" onclick="openProposalForExisting('${item.id}')" title="Ajukan Tambahan / Modifikasi ke Toolman">
             <i class="ph ph-paper-plane-tilt"></i> Usulkan
           </button>
         </div>
       `;
     } else if (userRole === 'guest') {
-      // Guest: Read-only badge + QR
+      // Guest: Read-only badge
       actionButtons = `
-        <div style="display: flex; justify-content: center; gap: 6px; align-items: center;">
-          <button class="btn btn-sm btn-secondary" onclick="openQrLabel('${item.id}')" title="Lihat & Cetak Label QR Code">
-            <i class="ph-bold ph-qr-code"></i> QR
-          </button>
-          <span class="badge badge-asset" style="font-size: 0.75rem; padding: 4px 8px;"><i class="ph ph-check-circle" style="color: var(--color-success); margin-right: 4px;"></i>Terdata</span>
-        </div>
+        <span class="badge badge-asset" style="font-size: 0.75rem; padding: 4px 8px;"><i class="ph ph-check-circle" style="color: var(--color-success); margin-right: 4px;"></i>Terdata</span>
       `;
     } else {
       // Kajur: Supervisi
       actionButtons = `
-        <div style="display: flex; justify-content: flex-end; gap: 6px; align-items: center;">
-          ${qrBtn}
-          <span class="badge badge-condition-baik" style="font-size: 0.75rem; font-weight: 500; padding: 4px 8px;">Terverifikasi</span>
-        </div>
+        <span class="badge badge-condition-baik" style="font-size: 0.75rem; font-weight: 500; padding: 4px 8px;">Terverifikasi</span>
       `;
     }
 
     tbody.innerHTML += `
       <tr>
         <td style="color: var(--text-dim); text-align: center;">${item.no}</td>
+        <td style="text-align: center; width: 65px;">
+          <button class="btn-qr-cell" onclick="openQrLabel('${item.id}')" title="Generate & Cetak Label QR Code (${item.kodeBarang})">
+            <i class="ph-bold ph-qr-code"></i>
+          </button>
+        </td>
         <td><span class="code-tag">${item.kodeBarang}</span></td>
         <td>
           <div class="item-cell-with-photo">
