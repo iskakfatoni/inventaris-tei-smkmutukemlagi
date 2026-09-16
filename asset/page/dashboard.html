@@ -24,9 +24,13 @@
 
   <!-- SheetJS Library for Excel Import & Template Export -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <!-- QR Code & Scanner Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
   
   <!-- Main Stylesheet dengan Cache-Buster -->
-  <link rel="stylesheet" href="../../css/style.css?v=2.2">
+  <link rel="stylesheet" href="../../css/style.css?v=2.3">
 
   <!-- Immediate Theme Initializer -->
   <script>
@@ -164,6 +168,9 @@
               </button>
               <button class="btn btn-secondary btn-toolman-kajur" id="btn-open-import-excel" title="Import Data Inventaris dari Berkas Excel (.xlsx)">
                 <i class="ph-bold ph-file-arrow-up"></i> <span>Import Excel</span>
+              </button>
+              <button class="btn btn-secondary" id="btn-open-qr-scanner-inv" title="Scan QR Code Alat untuk Pencarian Cepat" style="border-color: rgba(6, 182, 212, 0.4); color: var(--accent-cyan);">
+                <i class="ph-bold ph-qr-code"></i> <span>Scan QR</span>
               </button>
               <button class="btn btn-primary" id="btn-main-inventory-action">
                 <i class="ph-bold ph-plus"></i> <span id="label-main-action">Tambah Barang Master</span>
@@ -343,6 +350,9 @@
               <p class="subtitle">Pencatatan sirkulasi check-out & check-in alat praktikum Bengkel TEI</p>
             </div>
             <div class="action-buttons">
+              <button class="btn btn-secondary" id="btn-open-qr-scanner-loans" title="Scan QR Code Alat untuk Peminjaman Cepat" style="border-color: rgba(6, 182, 212, 0.4); color: var(--accent-cyan);">
+                <i class="ph-bold ph-qr-code"></i> <span>Scan QR Alat</span>
+              </button>
               <button class="btn btn-primary" id="btn-open-add-loan">
                 <i class="ph-bold ph-plus"></i> <span>Catat Peminjaman Baru</span>
               </button>
@@ -1055,9 +1065,92 @@
         <p style="font-size: 0.82rem; color: var(--text-muted);">
           Database dikonfigurasi menggunakan Google Cloud Firestore SDK v10.8 dengan sinkronisasi multi-device otomatis tanpa perlu refresh manual.
         </p>
+        <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-color);">
+          <label style="font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 6px; color: var(--text-main);">
+            <i class="ph-bold ph-floppy-disk"></i> Cadangan Data Master (JSON)
+          </label>
+          <p style="font-size: 0.76rem; color: var(--text-dim); margin-bottom: 10px;">
+            Unduh seluruh arsip data inventaris, logbook peminjaman, dan tahun ajaran dalam format JSON untuk mitigasi risiko offline.
+          </p>
+          <button type="button" class="btn btn-secondary" id="btn-export-backup-json" style="width: 100%; justify-content: center;">
+            <i class="ph-bold ph-download-simple"></i> Unduh Cadangan JSON (.json)
+          </button>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-primary" data-close="modal-settings">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Label QR Code & Cetak Stiker Alat -->
+  <div class="modal-overlay" id="modal-qr-label">
+    <div class="modal-card" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3><i class="ph-bold ph-qr-code"></i> Label QR Code Barang</h3>
+        <button class="btn-close-modal" data-close="modal-qr-label"><i class="ph-bold ph-x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="qr-sticker-wrapper">
+          <div class="qr-sticker-card" id="printable-qr-label">
+            <div class="qr-sticker-header">
+              <img src="../image/logo-tei.webp" alt="Logo TEI" class="qr-sticker-logo">
+              <div class="qr-sticker-header-text">
+                <h4>SMK MUTU KEMLAGI</h4>
+                <span>Inventaris Lab Elektronika Industri</span>
+              </div>
+            </div>
+            <div class="qr-sticker-body">
+              <div class="qr-code-canvas-wrap" id="qr-code-target">
+                <!-- QR Code rendered via QRCode.js -->
+              </div>
+              <div class="qr-sticker-meta">
+                <span class="qr-meta-code" id="qr-label-code">TEI-BRG-001</span>
+                <div class="qr-meta-title" id="qr-label-name">Nama Barang</div>
+                <div class="qr-meta-detail">
+                  <div>Spesifikasi: <strong id="qr-label-spec">-</strong></div>
+                  <div>Lokasi: <strong id="qr-label-location">Lemari 1</strong></div>
+                  <div>Kondisi: <strong id="qr-label-condition">Baik</strong></div>
+                </div>
+              </div>
+            </div>
+            <div class="qr-sticker-footer">
+              Scan QR untuk cek inventaris & peminjaman praktikum
+            </div>
+          </div>
+        </div>
+        <p style="font-size: 0.78rem; color: var(--text-dim); text-align: center; margin-top: 8px;">
+          Gunakan tombol di bawah untuk mencetak stiker atau mengunduh gambar QR Code.
+        </p>
+      </div>
+      <div class="modal-footer" style="display: flex; gap: 8px; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" data-close="modal-qr-label">Tutup</button>
+        <button type="button" class="btn btn-primary" id="btn-print-qr-label">
+          <i class="ph-bold ph-printer"></i> Cetak Label Stiker
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Scanner QR Code Kamera (html5-qrcode) -->
+  <div class="modal-overlay" id="modal-qr-scanner">
+    <div class="modal-card" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3><i class="ph-bold ph-camera"></i> Scanner QR Code Alat Bengkel</h3>
+        <button class="btn-close-modal" id="btn-close-qr-scanner" data-close="modal-qr-scanner"><i class="ph-bold ph-x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="scanner-viewport-wrap">
+          <div id="qr-reader" style="width: 100%;"></div>
+          <div class="scanner-laser-line" id="scanner-laser"></div>
+        </div>
+        <div class="scanner-guide-text">
+          <p><i class="ph-bold ph-info"></i> Arahkan kamera ke stiker QR Code pada modul/alat praktikum.</p>
+          <div id="scanner-feedback" style="font-size: 0.85rem; font-weight: 600; color: var(--accent-cyan); margin-top: 6px;"></div>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content: space-between;">
+        <button type="button" class="btn btn-secondary" id="btn-stop-qr-scanner" data-close="modal-qr-scanner">Tutup Kamera</button>
       </div>
     </div>
   </div>
@@ -1066,8 +1159,8 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- Scripts dengan Cache-Buster -->
-  <script src="../../js/app-text.js?v=2.2"></script>
-  <script src="../../js/firebase-config.js?v=2.2"></script>
-  <script src="../../js/app.js?v=2.2"></script>
+  <script src="../../js/app-text.js?v=2.3"></script>
+  <script src="../../js/firebase-config.js?v=2.3"></script>
+  <script src="../../js/app.js?v=2.3"></script>
 </body>
 </html>

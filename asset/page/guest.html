@@ -21,9 +21,12 @@
 
   <!-- Phosphor Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <!-- QR Code Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   
   <!-- Main Stylesheet dengan Cache Busting -->
-  <link rel="stylesheet" href="../../css/style.css?v=2.2">
+  <link rel="stylesheet" href="../../css/style.css?v=2.3">
 
   <!-- Immediate Theme Initializer -->
   <script>
@@ -317,12 +320,58 @@
     </div>
   </div>
 
+  <!-- Modal: Label QR Code & Cetak Stiker Alat -->
+  <div class="modal-overlay" id="modal-qr-label">
+    <div class="modal-card" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3><i class="ph-bold ph-qr-code"></i> Label QR Code Barang</h3>
+        <button class="btn-close-modal" data-close="modal-qr-label"><i class="ph-bold ph-x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="qr-sticker-wrapper">
+          <div class="qr-sticker-card" id="printable-qr-label">
+            <div class="qr-sticker-header">
+              <img src="../image/logo-tei.webp" alt="Logo TEI" class="qr-sticker-logo">
+              <div class="qr-sticker-header-text">
+                <h4>SMK MUTU KEMLAGI</h4>
+                <span>Inventaris Lab Elektronika Industri</span>
+              </div>
+            </div>
+            <div class="qr-sticker-body">
+              <div class="qr-code-canvas-wrap" id="qr-code-target">
+                <!-- QR Code rendered via QRCode.js -->
+              </div>
+              <div class="qr-sticker-meta">
+                <span class="qr-meta-code" id="qr-label-code">TEI-BRG-001</span>
+                <div class="qr-meta-title" id="qr-label-name">Nama Barang</div>
+                <div class="qr-meta-detail">
+                  <div>Spesifikasi: <strong id="qr-label-spec">-</strong></div>
+                  <div>Lokasi: <strong id="qr-label-location">Lemari 1</strong></div>
+                  <div>Kondisi: <strong id="qr-label-condition">Baik</strong></div>
+                </div>
+              </div>
+            </div>
+            <div class="qr-sticker-footer">
+              Scan QR untuk cek inventaris & peminjaman praktikum
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; gap: 8px; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" data-close="modal-qr-label">Tutup</button>
+        <button type="button" class="btn btn-primary" id="btn-print-qr-label">
+          <i class="ph-bold ph-printer"></i> Cetak Label Stiker
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Container -->
   <div class="toast-container" id="toast-container"></div>
 
   <!-- Scripts dengan Cache Busting -->
-  <script src="../../js/app-text.js?v=2.2"></script>
-  <script src="../../js/firebase-config.js?v=2.2"></script>
-  <script src="../../js/app.js?v=2.2"></script>
+  <script src="../../js/app-text.js?v=2.3"></script>
+  <script src="../../js/firebase-config.js?v=2.3"></script>
+  <script src="../../js/app.js?v=2.3"></script>
 </body>
 </html>

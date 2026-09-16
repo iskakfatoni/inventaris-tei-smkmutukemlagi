@@ -58,3 +58,27 @@
 2. **Lightbox Viewer:**
    - Klik pada thumbnail foto di baris tabel inventaris untuk membuka pratinjau resolusi penuh.
 
+---
+
+### 🏷️ SOP Penggunaan Label QR Code & Scanner Kamera:
+
+1. **Cetak Label Stiker QR Code Alat:**
+   - Buka menu **Inventaris** (atau **Mode Tamu**).
+   - Klik ikon **QR Code** pada kolom aksi baris alat yang ingin diberi label.
+   - Kotak dialog pratinjau stiker (Logo TEI, Kode Barang, Nama, Lokasi Rak, & QR) akan muncul.
+   - Klik **"Cetak Label Stiker"** untuk langsung mencetak label melalui printer stiker / thermal / printer biasa.
+2. **Peminjaman Cepat via Scanner Kamera:**
+   - Pada menu **Peminjaman Alat**, klik tombol **"Scan QR Alat"**.
+   - Izinkan browser mengakses kamera (laptop atau kamera belakang ponsel).
+   - Arahkan kamera ke stiker QR pada box/alat praktikum siswa.
+   - Sistem secara otomatis mendeteksi alat, membuka formulir peminjaman, dan memilih alat tersebut tanpa perlu mencari manual.
+3. **Pencarian Cepat Inventaris via QR:**
+   - Pada menu **Inventaris**, klik tombol **"Scan QR"** untuk langsung menyaring dan menemukan data alat di lemari/rak.
+
+---
+
+### 💾 Prosedur Cadangan Data Master (Backup JSON):
+
+1. Klik tombol **Pengaturan (Ikon Roda Gigi)** di header pojok kanan atas.
+2. Pada bagian **Cadangan Data Master (JSON)**, klik tombol **"Unduh Cadangan JSON (.json)"**.
+3. Berkas arsip JSON lengkap yang memuat seluruh inventaris, logbook peminjaman, dan tahun ajaran akan tersimpan di perangkat lokal sebagai cadangan darurat.

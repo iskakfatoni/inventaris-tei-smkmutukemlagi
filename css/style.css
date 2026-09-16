@@ -2054,5 +2054,243 @@ body {
   }
 }
 
+/* ===================================================
+   QR CODE LABEL & CAMERA SCANNER STYLES
+   =================================================== */
+
+/* QR Code Sticker Card Preview */
+.qr-sticker-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px 0;
+}
+
+.qr-sticker-card {
+  width: 100%;
+  max-width: 380px;
+  background: #ffffff;
+  color: #0f172a;
+  border-radius: 12px;
+  border: 2px solid #0284c7;
+  padding: 14px 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.qr-sticker-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 2px solid #0284c7;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+.qr-sticker-logo {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+}
+
+.qr-sticker-header-text h4 {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0369a1;
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.qr-sticker-header-text span {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #64748b;
+  display: block;
+}
+
+.qr-sticker-body {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.qr-code-canvas-wrap {
+  background: #ffffff;
+  padding: 6px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 110px;
+  min-height: 110px;
+}
+
+.qr-code-canvas-wrap img,
+.qr-code-canvas-wrap canvas {
+  max-width: 100px;
+  max-height: 100px;
+  display: block;
+}
+
+.qr-sticker-meta {
+  flex: 1;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.qr-meta-code {
+  display: inline-block;
+  background: #0284c7;
+  color: #ffffff;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 0.76rem;
+  margin-bottom: 4px;
+}
+
+.qr-meta-title {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 0.88rem;
+  margin-bottom: 4px;
+  line-height: 1.25;
+}
+
+.qr-meta-detail {
+  color: #475569;
+  font-size: 0.75rem;
+}
+
+.qr-meta-detail strong {
+  color: #1e293b;
+}
+
+.qr-sticker-footer {
+  margin-top: 10px;
+  padding-top: 6px;
+  border-top: 1px dashed #cbd5e1;
+  font-size: 0.68rem;
+  color: #64748b;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* Scanner Viewfinder & Animation */
+.scanner-viewport-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #000;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#qr-scanner-video {
+  width: 100% !important;
+  border-radius: var(--radius-md);
+}
+
+.scanner-laser-line {
+  position: absolute;
+  top: 15%;
+  left: 10%;
+  width: 80%;
+  height: 2px;
+  background: #06b6d4;
+  box-shadow: 0 0 10px #06b6d4, 0 0 20px #06b6d4;
+  animation: scanLaser 2.2s infinite alternate ease-in-out;
+  pointer-events: none;
+  z-index: 5;
+}
+
+@keyframes scanLaser {
+  0% {
+    top: 15%;
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    top: 85%;
+    opacity: 0.8;
+  }
+}
+
+.scanner-guide-text {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+/* Media Print Optimization for QR Sticker Label */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #modal-qr-label,
+  #modal-qr-label * {
+    visibility: visible;
+  }
+
+  #modal-qr-label {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: #ffffff !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+  }
+
+  #modal-qr-label .modal-header,
+  #modal-qr-label .modal-footer,
+  #modal-qr-label .btn-close-modal {
+    display: none !important;
+  }
+
+  #modal-qr-label .modal-card {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .qr-sticker-card {
+    border: 2px solid #000 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+
+  .qr-sticker-header-text h4 {
+    color: #000 !important;
+  }
+
+  .qr-meta-code {
+    background: #000 !important;
+    color: #fff !important;
+  }
+}
+
+
 
 

@@ -5,11 +5,14 @@ Sistem Informasi Manajemen Inventaris Alat, Trainer Kit, dan Komponen Praktikum 
 ✨ **Fitur Unggulan Sistem:**
 - 📦 **Master Inventaris Format 14 Kolom Standar Excel**
 - 🔄 **Logbook Peminjaman Alat Siswa (Check-out & Check-in)**
+- 🏷️ **Generator & Cetak Stiker Label QR Code Alat Bengkel**
+- 📷 **Scanner QR Code / Barcode Kamera (Peminjaman & Pencarian Cepat)**
 - 📸 **Upload & Kompresi Foto Barang Cerdas (WebP Client-Side + Lightbox Viewer)**
 - 📊 **Rekapitulasi Kesiapan & Kondisi Fisik Real-Time**
 - 📅 **Multi-Tahun Ajaran & Migrasi Data Antar-TA (Tutup Buku)**
-- 📥 **Import & Export Template Excel (.xlsx)**
+- 📥 **Import & Export Template Excel (.xlsx) & Backup Arsip JSON**
 - 📝 **Alur Usulan Barang Guru ➔ Approval Toolman ➔ Audit Kajur**
+- 🔐 **Hybrid Firebase Cloud Authentication & RBAC Terproteksi**
 - 📱 **Progressive Web App (PWA) & Windows Desktop App Mode**
 
 🌐 **Website Resmi:** [https://iskakfatoni.github.io/inventaris-tei-smkmutukemlagi/](https://iskakfatoni.github.io/inventaris-tei-smkmutukemlagi/)

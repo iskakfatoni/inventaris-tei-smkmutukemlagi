@@ -148,6 +148,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initFilters();
     initPhotoUpload();
     initLoansManager();
+    initQrCodeFeatures();
+    initBackupManager();
     initDashboardLogout();
     renderTahunAjaranDropdowns();
     updateRoleUI();
@@ -184,6 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initFilters();
     initDashboardLogout();
     initModals();
+    initQrCodeFeatures();
     renderTahunAjaranDropdowns();
     populateLokasiFilter();
     renderInventoryTable();
@@ -231,30 +234,43 @@ function initAuthLanding() {
     const email = document.getElementById('login-landing-email').value.trim();
     const password = document.getElementById('login-landing-password').value.trim();
 
-    const targetUser = window.db.getUserByEmail(email);
-    if (!targetUser) {
-      showToast(APP_TEXT.login.errorAuth, 'error');
-      return;
+    const submitBtn = formLogin.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i> Memverifikasi...';
     }
 
-    const isValid = window.db.verifyPassword(email, password);
-    if (isValid) {
-      const userIdentifier = targetUser.email || targetUser.username || targetUser.id;
-      localStorage.setItem('INVENTARIS_LOGGED_USER', userIdentifier);
-      localStorage.setItem('INVENTARIS_LOGGED_USER_DATA', JSON.stringify(targetUser));
-      sessionStorage.setItem('INVENTARIS_LOGGED_USER', userIdentifier);
-      sessionStorage.setItem('INVENTARIS_LOGGED_USER_DATA', JSON.stringify(targetUser));
+    try {
+      const loginResult = await window.db.loginWithFirebaseAuth(email, password);
+      if (loginResult && loginResult.success) {
+        const targetUser = loginResult.user;
+        const userIdentifier = targetUser.email || targetUser.username || targetUser.id;
+        localStorage.setItem('INVENTARIS_LOGGED_USER', userIdentifier);
+        localStorage.setItem('INVENTARIS_LOGGED_USER_DATA', JSON.stringify(targetUser));
+        sessionStorage.setItem('INVENTARIS_LOGGED_USER', userIdentifier);
+        sessionStorage.setItem('INVENTARIS_LOGGED_USER_DATA', JSON.stringify(targetUser));
 
-      showToast(`${APP_TEXT.login.welcomePrefix}, ${targetUser.name}! (${targetUser.roleTitle})`, 'success');
-      setTimeout(() => {
-        if (targetUser.role === 'guest') {
-          window.location.href = 'asset/page/guest.html';
-        } else {
-          window.location.href = 'asset/page/dashboard.html';
+        showToast(`${APP_TEXT.login.welcomePrefix}, ${targetUser.name}! (${targetUser.roleTitle})`, 'success');
+        setTimeout(() => {
+          if (targetUser.role === 'guest') {
+            window.location.href = 'asset/page/guest.html';
+          } else {
+            window.location.href = 'asset/page/dashboard.html';
+          }
+        }, 250);
+      } else {
+        showToast(loginResult ? loginResult.message : APP_TEXT.login.errorAuth, 'error');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="ph-bold ph-sign-in"></i> Masuk';
         }
-      }, 250);
-    } else {
-      showToast(APP_TEXT.login.errorAuth, 'error');
+      }
+    } catch (err) {
+      showToast(err.message || APP_TEXT.login.errorAuth, 'error');
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="ph-bold ph-sign-in"></i> Masuk';
+      }
     }
   });
 }
@@ -262,8 +278,11 @@ function initAuthLanding() {
 function initDashboardLogout() {
   const btnLogout = document.getElementById('btn-logout');
   if (btnLogout) {
-    btnLogout.addEventListener('click', () => {
+    btnLogout.addEventListener('click', async () => {
       if (confirm(APP_TEXT.login.logoutConfirm)) {
+        if (window.db && typeof window.db.logoutFirebaseAuth === 'function') {
+          await window.db.logoutFirebaseAuth();
+        }
         localStorage.removeItem('INVENTARIS_LOGGED_USER');
         localStorage.removeItem('INVENTARIS_LOGGED_USER_DATA');
         sessionStorage.removeItem('INVENTARIS_LOGGED_USER');
@@ -855,10 +874,13 @@ function renderInventoryTable() {
          </div>`;
 
     let actionButtons = '';
+    const qrBtn = `<button class="btn btn-sm btn-secondary" onclick="openQrLabel('${item.id}')" title="Lihat & Cetak Label QR Code"><i class="ph-bold ph-qr-code"></i></button>`;
+
     if (userRole === 'toolman') {
       // Toolman: Petugas Utama (Akses Penuh Edit & Hapus Master)
       actionButtons = `
         <div style="display: flex; justify-content: flex-end; gap: 6px;">
+          ${qrBtn}
           <button class="btn btn-sm btn-secondary" onclick="editItem('${item.id}')" title="Edit Data Barang (Petugas Utama)">
             <i class="ph ph-pencil-simple"></i> Edit
           </button>
@@ -870,19 +892,30 @@ function renderInventoryTable() {
     } else if (userRole === 'guru') {
       // Guru: Pengusul
       actionButtons = `
-        <button class="btn btn-sm btn-secondary" onclick="openProposalForExisting('${item.id}')" title="Ajukan Tambahan / Modifikasi ke Toolman">
-          <i class="ph ph-paper-plane-tilt"></i> Usulkan
-        </button>
+        <div style="display: flex; justify-content: flex-end; gap: 6px;">
+          ${qrBtn}
+          <button class="btn btn-sm btn-secondary" onclick="openProposalForExisting('${item.id}')" title="Ajukan Tambahan / Modifikasi ke Toolman">
+            <i class="ph ph-paper-plane-tilt"></i> Usulkan
+          </button>
+        </div>
       `;
     } else if (userRole === 'guest') {
-      // Guest: Read-only badge
+      // Guest: Read-only badge + QR
       actionButtons = `
-        <span class="badge badge-asset" style="font-size: 0.75rem; padding: 4px 8px;"><i class="ph ph-check-circle" style="color: var(--color-success); margin-right: 4px;"></i>Terdata</span>
+        <div style="display: flex; justify-content: center; gap: 6px; align-items: center;">
+          <button class="btn btn-sm btn-secondary" onclick="openQrLabel('${item.id}')" title="Lihat & Cetak Label QR Code">
+            <i class="ph-bold ph-qr-code"></i> QR
+          </button>
+          <span class="badge badge-asset" style="font-size: 0.75rem; padding: 4px 8px;"><i class="ph ph-check-circle" style="color: var(--color-success); margin-right: 4px;"></i>Terdata</span>
+        </div>
       `;
     } else {
-      // Kajur: Supervisi (Label Terverifikasi rapi tanpa ikon)
+      // Kajur: Supervisi
       actionButtons = `
-        <span class="badge badge-condition-baik" style="font-size: 0.75rem; font-weight: 500; padding: 4px 8px;">Terverifikasi</span>
+        <div style="display: flex; justify-content: flex-end; gap: 6px; align-items: center;">
+          ${qrBtn}
+          <span class="badge badge-condition-baik" style="font-size: 0.75rem; font-weight: 500; padding: 4px 8px;">Terverifikasi</span>
+        </div>
       `;
     }
 
@@ -1921,4 +1954,232 @@ function showToast(message, type = 'info') {
     setTimeout(() => toast.remove(), 300);
   }, 3500);
 }
+
+/* ===================================================
+   9. QR CODE LABEL GENERATOR & CAMERA SCANNER
+   =================================================== */
+
+let html5QrScannerInstance = null;
+let currentScannerMode = 'loan'; // 'loan' or 'inventory'
+
+function initQrCodeFeatures() {
+  // 1. Tombol Cetak Label Stiker
+  const btnPrintQr = document.getElementById('btn-print-qr-label');
+  if (btnPrintQr) {
+    btnPrintQr.addEventListener('click', () => {
+      window.print();
+    });
+  }
+
+  // 2. Tombol Buka Scanner di View Peminjaman
+  const btnOpenScannerLoans = document.getElementById('btn-open-qr-scanner-loans');
+  if (btnOpenScannerLoans) {
+    btnOpenScannerLoans.addEventListener('click', () => {
+      startCameraQrScanner('loan');
+    });
+  }
+
+  // 3. Tombol Buka Scanner di View Inventaris
+  const btnOpenScannerInv = document.getElementById('btn-open-qr-scanner-inv');
+  if (btnOpenScannerInv) {
+    btnOpenScannerInv.addEventListener('click', () => {
+      startCameraQrScanner('inventory');
+    });
+  }
+
+  // 4. Tombol Tutup Scanner
+  const btnStopScanner = document.getElementById('btn-stop-qr-scanner');
+  if (btnStopScanner) {
+    btnStopScanner.addEventListener('click', () => {
+      stopCameraQrScanner();
+    });
+  }
+
+  const btnCloseScannerModal = document.getElementById('btn-close-qr-scanner');
+  if (btnCloseScannerModal) {
+    btnCloseScannerModal.addEventListener('click', () => {
+      stopCameraQrScanner();
+    });
+  }
+}
+
+// Buka Modal Label QR Code & Render Canvas QR
+window.openQrLabel = function(itemId) {
+  const item = window.db.getById(itemId);
+  if (!item) {
+    showToast('Data barang tidak ditemukan!', 'error');
+    return;
+  }
+
+  const elCode = document.getElementById('qr-label-code');
+  const elName = document.getElementById('qr-label-name');
+  const elSpec = document.getElementById('qr-label-spec');
+  const elLocation = document.getElementById('qr-label-location');
+  const elCondition = document.getElementById('qr-label-condition');
+  const qrTarget = document.getElementById('qr-code-target');
+
+  if (elCode) elCode.textContent = item.kodeBarang || '-';
+  if (elName) elName.textContent = item.namaBarang || 'Barang Bengkel TEI';
+  if (elSpec) elSpec.textContent = item.spesifikasiMerk || '-';
+  if (elLocation) elLocation.textContent = item.lokasiRak || 'Lemari 1';
+  if (elCondition) elCondition.textContent = item.kondisi || 'Baik';
+
+  if (qrTarget) {
+    qrTarget.innerHTML = '';
+    if (typeof QRCode !== 'undefined') {
+      try {
+        new QRCode(qrTarget, {
+          text: item.kodeBarang || item.id,
+          width: 96,
+          height: 96,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      } catch (e) {
+        console.warn("Gagal render QRCode canvas:", e);
+        qrTarget.innerHTML = `<span style="font-size: 0.75rem; font-family: monospace; font-weight: bold;">${item.kodeBarang}</span>`;
+      }
+    } else {
+      qrTarget.innerHTML = `<span style="font-size: 0.75rem; font-family: monospace; font-weight: bold;">${item.kodeBarang}</span>`;
+    }
+  }
+
+  openModal('modal-qr-label');
+};
+
+// Start Camera QR Scanner
+async function startCameraQrScanner(mode = 'loan') {
+  currentScannerMode = mode;
+  openModal('modal-qr-scanner');
+
+  const feedbackEl = document.getElementById('scanner-feedback');
+  if (feedbackEl) {
+    feedbackEl.textContent = 'Mengaktifkan kamera pemindai...';
+  }
+
+  if (typeof Html5Qrcode === 'undefined') {
+    if (feedbackEl) feedbackEl.textContent = 'Library pemindai kamera belum siap. Cek koneksi internet.';
+    return;
+  }
+
+  try {
+    if (html5QrScannerInstance) {
+      await stopCameraQrScanner();
+    }
+
+    html5QrScannerInstance = new Html5Qrcode("qr-reader");
+    const config = { fps: 10, qrbox: { width: 220, height: 220 } };
+
+    await html5QrScannerInstance.start(
+      { facingMode: "environment" },
+      config,
+      (decodedText) => {
+        handleQrScanSuccess(decodedText);
+      },
+      (errorMessage) => {
+        // frame scanning in progress
+      }
+    );
+
+    if (feedbackEl) {
+      feedbackEl.textContent = mode === 'loan' 
+        ? 'Siap memindai: Arahkan ke QR alat untuk langsung mencatat peminjaman' 
+        : 'Siap memindai: Arahkan ke QR alat untuk pencarian cepat';
+    }
+  } catch (err) {
+    console.error("Gagal membuka kamera:", err);
+    if (feedbackEl) {
+      feedbackEl.textContent = `Izin kamera tidak diberikan atau perangkat tidak memiliki kamera: ${err.message || err}`;
+    }
+    showToast('Gagal mengakses kamera. Pastikan izin kamera aktif.', 'error');
+  }
+}
+
+// Stop Camera QR Scanner
+async function stopCameraQrScanner() {
+  if (html5QrScannerInstance) {
+    try {
+      await html5QrScannerInstance.stop();
+      html5QrScannerInstance.clear();
+    } catch (e) {
+      console.warn("Stop scanner:", e);
+    }
+    html5QrScannerInstance = null;
+  }
+}
+
+// Handle QR Scan Result
+function handleQrScanSuccess(decodedText) {
+  if (!decodedText) return;
+  const cleanCode = decodedText.trim();
+  
+  // Hentikan kamera dan tutup modal
+  stopCameraQrScanner();
+  closeModal('modal-qr-scanner');
+
+  // Cari barang di store berdasarkan kodeBarang atau ID
+  const allItems = window.db.getAll();
+  const matchedItem = allItems.find(i => 
+    (i.kodeBarang && i.kodeBarang.toLowerCase() === cleanCode.toLowerCase()) ||
+    (i.id && i.id === cleanCode) ||
+    (i.namaBarang && i.namaBarang.toLowerCase() === cleanCode.toLowerCase())
+  );
+
+  if (currentScannerMode === 'loan') {
+    // Alihkan ke menu Peminjaman jika belum aktif
+    const navLoansBtn = document.querySelector('.nav-item[data-view="loans"]');
+    if (navLoansBtn) navLoansBtn.click();
+
+    // Buka modal pencatatan peminjaman
+    openModal('modal-add-loan');
+
+    if (matchedItem) {
+      const selectItem = document.getElementById('loan-item-select');
+      if (selectItem) {
+        selectItem.value = matchedItem.id;
+        // Trigger event change agar detail stok & spesifikasi terisi
+        selectItem.dispatchEvent(new Event('change'));
+      }
+      showToast(`Berhasil memindai: "${matchedItem.namaBarang}" (${matchedItem.kodeBarang})`, 'success');
+    } else {
+      showToast(`QR Code terdeteksi: "${cleanCode}". Silakan pilih alat manual jika belum terdaftar.`, 'info');
+    }
+  } else {
+    // Mode Inventaris: Isi pencarian dan refresh tabel
+    const navInvBtn = document.querySelector('.nav-item[data-view="inventory"]');
+    if (navInvBtn) navInvBtn.click();
+
+    const searchInput = document.getElementById('excel-search-input');
+    if (searchInput) {
+      searchInput.value = matchedItem ? matchedItem.kodeBarang : cleanCode;
+      renderInventoryTable();
+    }
+
+    if (matchedItem) {
+      showToast(`Ditemukan: "${matchedItem.namaBarang}" di lokasi ${matchedItem.lokasiRak}`, 'success');
+    } else {
+      showToast(`Pencarian untuk kode "${cleanCode}" diterapkan.`, 'info');
+    }
+  }
+}
+
+/* ===================================================
+   10. BACKUP JSON EXPORT MANAGER
+   =================================================== */
+
+function initBackupManager() {
+  const btnExport = document.getElementById('btn-export-backup-json');
+  if (btnExport) {
+    btnExport.addEventListener('click', () => {
+      try {
+        const filename = window.db.exportBackupJson();
+        showToast(`Cadangan data berhasil diunduh: ${filename}`, 'success');
+      } catch (e) {
+        showToast(`Gagal mengunduh cadangan: ${e.message}`, 'error');
+      }
+    });
+  }
+}
+
 

@@ -24,6 +24,8 @@ class FirebaseInventoryStore {
     this.tahunAjaranList = [];
     this.activeTahunAjaran = '2026/2027';
     this.isCloudConnected = false;
+    this.auth = null;
+    this.currentAuthUser = null;
     this.listeners = [];
   }
 
@@ -37,6 +39,20 @@ class FirebaseInventoryStore {
 
       this.app = initializeApp(this.firebaseConfig);
       this.db = getFirestore(this.app);
+
+      // Inisialisasi Firebase Authentication (Modular SDK v10)
+      try {
+        const { getAuth, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js");
+        this.auth = getAuth(this.app);
+        onAuthStateChanged(this.auth, (user) => {
+          this.currentAuthUser = user;
+          if (user) {
+            console.log("🔐 Firebase Auth state: Terhubung sebagai", user.email);
+          }
+        });
+      } catch (authInitErr) {
+        console.warn("Inisialisasi Firebase Auth modular:", authInitErr.message);
+      }
 
       // 1. Realtime listener untuk koleksi inventaris
       const invCol = collection(this.db, "inventaris");
@@ -380,6 +396,95 @@ class FirebaseInventoryStore {
 
     this.notifyListeners();
     return true;
+  }
+
+  // --- Hybrid Firebase Authentication Handler ---
+  async loginWithFirebaseAuth(email, password) {
+    const cleanEmail = (email || '').trim();
+    const cleanPass = (password || '').trim();
+
+    // 1. Cek profil pengguna di database lokal/Firestore
+    const localUser = this.getUserByEmail(cleanEmail);
+    if (!localUser) {
+      return { success: false, message: 'Email atau username tidak terdaftar dalam sistem!' };
+    }
+
+    // 2. Akun Tamu (Guest)
+    if (localUser.role === 'guest') {
+      if (this.verifyPassword(cleanEmail, cleanPass)) {
+        return { success: true, user: localUser, isFirebaseAuth: false, message: 'Login mode Tamu (Guest) berhasil.' };
+      } else {
+        return { success: false, message: 'Password untuk akun Tamu salah! (Default: 123)' };
+      }
+    }
+
+    // 3. Coba autentikasi via Google Firebase Authentication SDK jika berformat email
+    if (this.auth && cleanEmail.includes('@')) {
+      try {
+        const { signInWithEmailAndPassword } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js");
+        const userCredential = await signInWithEmailAndPassword(this.auth, cleanEmail, cleanPass);
+        this.currentAuthUser = userCredential.user;
+        return {
+          success: true,
+          user: localUser,
+          isFirebaseAuth: true,
+          firebaseUser: userCredential.user,
+          message: 'Login terautentikasi via Firebase Identity Platform.'
+        };
+      } catch (authErr) {
+        console.warn("Catatan Firebase Auth SDK (melakukan fallback lokal jika belum didaftarkan di Console):", authErr.code, authErr.message);
+      }
+    }
+
+    // 4. Fallback ke verifikasi kredensial terdaftar di Firestore database
+    if (this.verifyPassword(cleanEmail, cleanPass)) {
+      return {
+        success: true,
+        user: localUser,
+        isFirebaseAuth: false,
+        message: 'Login berhasil via kredensial database inventaris.'
+      };
+    } else {
+      return { success: false, message: 'Password yang Anda masukkan salah!' };
+    }
+  }
+
+  async logoutFirebaseAuth() {
+    if (this.auth) {
+      try {
+        const { signOut } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js");
+        await signOut(this.auth);
+      } catch (e) {
+        console.warn("Sign out Firebase Auth:", e.message);
+      }
+    }
+    this.currentAuthUser = null;
+  }
+
+  // --- Backup Data ke Berkas JSON ---
+  exportBackupJson() {
+    const backupData = {
+      appName: "Inventaris TEI SMK MUTU KEMLAGI",
+      version: "2.3",
+      exportedAt: new Date().toISOString(),
+      activeTahunAjaran: this.activeTahunAjaran,
+      totalItems: this.inventory.length,
+      totalLoans: this.loans.length,
+      tahunAjaranList: this.tahunAjaranList,
+      inventory: this.inventory,
+      loans: this.loans,
+      proposals: this.proposals
+    };
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+    const downloadAnchor = document.createElement('a');
+    const safeTA = (this.activeTahunAjaran || '2026-2027').replace('/', '-');
+    const filename = `Backup_Inventaris_TEI_${safeTA}_${new Date().toISOString().split('T')[0]}.json`;
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", filename);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+    return filename;
   }
 
   // --- CRUD Inventaris ---
