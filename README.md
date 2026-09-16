@@ -15,7 +15,8 @@ Sistem Informasi Manajemen Inventaris Alat, Trainer Kit, dan Komponen Praktikum 
 - 🔐 **Hybrid Firebase Cloud Authentication & RBAC Terproteksi**
 - 📱 **Progressive Web App (PWA) & Windows Desktop App Mode**
 
-🌐 **Website Resmi:** [https://iskakfatoni.github.io/inventaris-tei-smkmutukemlagi/](https://iskakfatoni.github.io/inventaris-tei-smkmutukemlagi/)
+🌐 **Website Resmi:** [https://iskakfatoni.github.io/inventaris-tei-smkmutukemlagi/](https://iskakfatoni.github.io/inventaris-tei-smkmutukemlagi/)  
+📱 **Aplikasi Android Native (PinjamTEI):** [https://github.com/iskakfatoni/pinjam-tei-smkmutukemlagi-android](https://github.com/iskakfatoni/pinjam-tei-smkmutukemlagi-android)
 
 ---
 
