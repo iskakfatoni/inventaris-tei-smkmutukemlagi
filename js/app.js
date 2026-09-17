@@ -1957,11 +1957,11 @@ let html5QrScannerInstance = null;
 let currentScannerMode = 'loan'; // 'loan' or 'inventory'
 
 function initQrCodeFeatures() {
-  // 1. Tombol Cetak Label Stiker
+  // 1. Tombol Cetak Label Stiker (Menghasilkan tepat 1 lembar label)
   const btnPrintQr = document.getElementById('btn-print-qr-label');
   if (btnPrintQr) {
     btnPrintQr.addEventListener('click', () => {
-      window.print();
+      printQrLabelSticker();
     });
   }
 
@@ -2040,6 +2040,233 @@ window.openQrLabel = function(itemId) {
   }
 
   openModal('modal-qr-label');
+};
+
+// Cetak Label QR Code ke Printer (Hanya 1 Halaman Rapi & Presisi)
+window.printQrLabelSticker = function() {
+  const printableCard = document.getElementById('printable-qr-label');
+  if (!printableCard) {
+    window.print();
+    return;
+  }
+
+  // Sinkronisasi canvas QRCode ke elemen image jika perlu
+  const canvas = printableCard.querySelector('canvas');
+  let qrImg = printableCard.querySelector('#qr-code-target img');
+  if (canvas && (!qrImg || !qrImg.getAttribute('src'))) {
+    try {
+      const dataUrl = canvas.toDataURL('image/png');
+      if (qrImg) {
+        qrImg.src = dataUrl;
+        qrImg.style.display = 'block';
+      } else {
+        const newImg = document.createElement('img');
+        newImg.src = dataUrl;
+        newImg.style.maxWidth = '100px';
+        newImg.style.maxHeight = '100px';
+        newImg.style.display = 'block';
+        const targetWrap = printableCard.querySelector('#qr-code-target');
+        if (targetWrap) targetWrap.appendChild(newImg);
+      }
+    } catch (err) {
+      console.warn('Canvas toDataURL warning:', err);
+    }
+  }
+
+  // Buat iframe khusus print yang terisolasi dari DOM halaman utama
+  let printFrame = document.getElementById('qr-print-isolated-iframe');
+  if (printFrame) {
+    printFrame.remove();
+  }
+
+  printFrame = document.createElement('iframe');
+  printFrame.id = 'qr-print-isolated-iframe';
+  printFrame.style.position = 'fixed';
+  printFrame.style.right = '0';
+  printFrame.style.bottom = '0';
+  printFrame.style.width = '0';
+  printFrame.style.height = '0';
+  printFrame.style.border = '0';
+  printFrame.style.opacity = '0';
+  printFrame.style.pointerEvents = 'none';
+  document.body.appendChild(printFrame);
+
+  const cardHtml = printableCard.outerHTML;
+  const doc = printFrame.contentWindow.document;
+
+  doc.open();
+  doc.write(`
+    <!DOCTYPE html>
+    <html lang="id">
+      <head>
+        <meta charset="UTF-8">
+        <base href="${window.location.href}">
+        <title>Label QR Code - SMK MUTU KEMLAGI</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+        <style>
+          @page {
+            size: auto;
+            margin: 6mm;
+          }
+          * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+          }
+          html, body {
+            background: #ffffff !important;
+            color: #0f172a !important;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            height: auto !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .print-label-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 4px;
+            width: 100%;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
+          .qr-sticker-card {
+            width: 100%;
+            max-width: 360px;
+            background: #ffffff !important;
+            color: #0f172a !important;
+            border-radius: 10px;
+            border: 2px solid #0284c7 !important;
+            padding: 12px 14px;
+            box-shadow: none !important;
+            position: relative;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            page-break-before: avoid !important;
+            page-break-after: avoid !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .qr-sticker-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid #0284c7 !important;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .qr-sticker-logo {
+            width: 36px;
+            height: 36px;
+            object-fit: contain;
+          }
+          .qr-sticker-header-text h4 {
+            font-size: 0.92rem;
+            font-weight: 800;
+            color: #0369a1 !important;
+            margin: 0;
+            line-height: 1.2;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .qr-sticker-header-text span {
+            font-size: 0.70rem;
+            font-weight: 600;
+            color: #64748b !important;
+            display: block;
+          }
+          .qr-sticker-body {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+          }
+          .qr-code-canvas-wrap {
+            background: #ffffff !important;
+            padding: 4px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1 !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 100px;
+            min-height: 100px;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .qr-code-canvas-wrap img,
+          .qr-code-canvas-wrap canvas {
+            max-width: 96px;
+            max-height: 96px;
+            display: block;
+          }
+          .qr-sticker-meta {
+            flex: 1;
+            font-size: 0.75rem;
+            line-height: 1.4;
+          }
+          .qr-meta-code {
+            display: inline-block;
+            background: #0284c7 !important;
+            color: #ffffff !important;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 0.74rem;
+            margin-bottom: 4px;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .qr-meta-title {
+            font-weight: 700;
+            color: #0f172a !important;
+            font-size: 0.85rem;
+            margin-bottom: 3px;
+            line-height: 1.2;
+          }
+          .qr-meta-detail {
+            color: #475569 !important;
+            font-size: 0.72rem;
+          }
+          .qr-meta-detail strong {
+            color: #1e293b !important;
+          }
+          .qr-sticker-footer {
+            margin-top: 8px;
+            padding-top: 5px;
+            border-top: 1px dashed #cbd5e1 !important;
+            font-size: 0.65rem;
+            color: #64748b !important;
+            text-align: center;
+            font-weight: 600;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="print-label-container">
+          ${cardHtml}
+        </div>
+      </body>
+    </html>
+  `);
+  doc.close();
+
+  // Berikan waktu render font & gambar selesai lalu panggil dialog cetak browser
+  setTimeout(() => {
+    try {
+      printFrame.contentWindow.focus();
+      printFrame.contentWindow.print();
+    } catch (err) {
+      console.warn('Iframe print fallback to window.print:', err);
+      window.print();
+    }
+  }, 250);
 };
 
 // Start Camera QR Scanner

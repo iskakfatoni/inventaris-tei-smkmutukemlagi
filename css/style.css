@@ -2263,60 +2263,180 @@ body {
   color: var(--text-muted);
 }
 
-/* Media Print Optimization for QR Sticker Label */
+/* Media Print Optimization for QR Sticker Label (Tepat 1 Halaman) */
 @media print {
-  body * {
-    visibility: hidden;
+  @page {
+    size: auto;
+    margin: 6mm;
   }
 
-  #modal-qr-label,
-  #modal-qr-label * {
-    visibility: visible;
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box !important;
   }
 
-  #modal-qr-label {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
+  html,
+  body {
     background: #ffffff !important;
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    margin: 0;
+    color: #000000 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Sembunyikan seluruh layout aplikasi, auth, container tamu, header, toast, dan modal selain QR Label */
+  #screen-app,
+  #screen-guest,
+  #screen-login,
+  .app-header,
+  .app-layout,
+  .app-sidebar,
+  .app-main,
+  .guest-container,
+  .auth-wrapper,
+  .toast-container,
+  .modal-overlay:not(#modal-qr-label) {
+    display: none !important;
+  }
+
+  body > *:not(#modal-qr-label):not(#qr-print-isolated-iframe) {
+    display: none !important;
+  }
+
+  /* Tampilkan hanya modal QR Label secara statis 1 halaman */
+  #modal-qr-label {
+    position: static !important;
+    inset: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+    box-shadow: none !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-before: avoid !important;
+    page-break-after: avoid !important;
   }
 
   #modal-qr-label .modal-header,
   #modal-qr-label .modal-footer,
-  #modal-qr-label .btn-close-modal {
+  #modal-qr-label .btn-close-modal,
+  #modal-qr-label p {
     display: none !important;
   }
 
   #modal-qr-label .modal-card {
+    position: static !important;
     border: none !important;
     box-shadow: none !important;
     background: transparent !important;
     padding: 0 !important;
+    margin: 0 auto !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    transform: none !important;
+    overflow: visible !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-before: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  #modal-qr-label .modal-body {
+    padding: 0 !important;
     margin: 0 !important;
   }
 
+  .qr-sticker-wrapper {
+    padding: 0 !important;
+    margin: 0 auto !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-before: avoid !important;
+    page-break-after: avoid !important;
+  }
+
   .qr-sticker-card {
-    border: 2px solid #000 !important;
+    border: 2px solid #0284c7 !important;
+    border-radius: 10px !important;
     box-shadow: none !important;
-    page-break-inside: avoid;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-before: avoid !important;
+    page-break-after: avoid !important;
+    margin: 0 auto !important;
+    max-width: 360px !important;
+    width: 100% !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .qr-sticker-header {
+    border-bottom: 2px solid #0284c7 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .qr-sticker-header-text h4 {
-    color: #000 !important;
+    color: #0369a1 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .qr-sticker-header-text span {
+    color: #64748b !important;
   }
 
   .qr-meta-code {
-    background: #000 !important;
-    color: #fff !important;
+    background: #0284c7 !important;
+    color: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .qr-meta-title {
+    color: #0f172a !important;
+  }
+
+  .qr-meta-detail {
+    color: #475569 !important;
+  }
+
+  .qr-meta-detail strong {
+    color: #1e293b !important;
+  }
+
+  .qr-code-canvas-wrap {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .qr-sticker-footer {
+    border-top: 1px dashed #cbd5e1 !important;
+    color: #64748b !important;
   }
 }
+
 
 
 
