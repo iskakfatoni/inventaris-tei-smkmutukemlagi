@@ -13,11 +13,12 @@
   --border-color: rgba(255, 255, 255, 0.08);
   --border-color-active: rgba(56, 189, 248, 0.35);
 
-  /* Brand Accents */
-  --accent-cyan: #06B6D4;
-  --accent-blue: #38BDF8;
-  --accent-indigo: #6366F1;
+  /* Brand Accents - Oranye Gradasi Ungu */
+  --accent-cyan: #FF7A00;
+  --accent-blue: #9333EA;
+  --accent-indigo: #7C3AED;
   --accent-purple: #A855F7;
+  --gradient-brand: linear-gradient(135deg, #FF7A00 0%, #9333EA 100%);
   
   /* Status Colors */
   --color-success: #10B981;
@@ -43,9 +44,9 @@
   --radius-lg: 16px;
   --radius-xl: 20px;
   --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
-  --glow-cyan: 0 0 18px rgba(6, 182, 212, 0.25);
+  --glow-cyan: 0 0 18px rgba(255, 122, 0, 0.35);
 
-  --login-bg: radial-gradient(circle at top center, rgba(6, 182, 212, 0.14) 0%, #0B0F17 70%);
+  --login-bg: radial-gradient(circle at top center, rgba(255, 122, 0, 0.16) 0%, rgba(147, 51, 234, 0.12) 40%, #0B0F17 75%);
   --header-bg: rgba(15, 20, 32, 0.85);
   --table-th-bg: rgba(15, 20, 32, 0.9);
   --table-stripe: rgba(255, 255, 255, 0.015);
@@ -1243,13 +1244,14 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent-cyan), #0284C7);
+  background: linear-gradient(135deg, #FF7A00 0%, #9333EA 100%);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+  box-shadow: 0 4px 15px rgba(255, 122, 0, 0.35);
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, #22D3EE, #0369A1);
+  background: linear-gradient(135deg, #EA580C 0%, #7E22CE 100%);
+  box-shadow: 0 6px 18px rgba(147, 51, 234, 0.4);
   transform: translateY(-1px);
 }
 

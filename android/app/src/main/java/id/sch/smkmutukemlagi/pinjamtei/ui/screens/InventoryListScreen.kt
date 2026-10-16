@@ -3,6 +3,7 @@ package id.sch.smkmutukemlagi.pinjamtei.ui.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.res.painterResource
@@ -153,14 +154,15 @@ fun InventoryListScreen(
             }
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = onAddItemClick,
-                containerColor = CyanPrimary,
-                contentColor = DarkBackground,
-                shape = CircleShape,
-                elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 8.dp)
+            Box(
+                modifier = Modifier
+                    .size(58.dp)
+                    .clip(CircleShape)
+                    .background(OrangePurpleGradient)
+                    .clickable(onClick = onAddItemClick),
+                contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Tambah Barang Baru", modifier = Modifier.size(28.dp))
+                Icon(Icons.Default.Add, contentDescription = "Tambah Barang Baru", tint = Color.White, modifier = Modifier.size(28.dp))
             }
         },
         containerColor = DarkBackground

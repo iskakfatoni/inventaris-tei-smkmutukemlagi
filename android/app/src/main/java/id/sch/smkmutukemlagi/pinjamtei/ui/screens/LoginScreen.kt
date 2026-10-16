@@ -3,6 +3,7 @@ package id.sch.smkmutukemlagi.pinjamtei.ui.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.res.painterResource
 import id.sch.smkmutukemlagi.pinjamtei.R
@@ -256,34 +257,35 @@ fun LoginScreen(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // Tombol Submit Login
-                    Button(
-                        onClick = {
-                            focusManager.clearFocus()
-                            viewModel.login(identifier, password, context, onLoginSuccess)
-                        },
-                        enabled = !isLoading,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = CyanPrimary,
-                            contentColor = DarkBackground
-                        ),
+                    // Tombol Submit Login dengan Gradasi Oranye - Ungu
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(OrangePurpleGradient)
+                            .clickable(enabled = !isLoading) {
+                                focusManager.clearFocus()
+                                viewModel.login(identifier, password, context, onLoginSuccess)
+                            },
+                        contentAlignment = Alignment.Center
                     ) {
                         if (isLoading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(22.dp),
-                                color = DarkBackground,
-                                strokeWidth = 2.5.dp
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Text("Memverifikasi Perangkat...", fontWeight = FontWeight.Bold)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(22.dp),
+                                    color = Color.White,
+                                    strokeWidth = 2.5.dp
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text("Memverifikasi Perangkat...", fontWeight = FontWeight.Bold, color = Color.White)
+                            }
                         } else {
-                            Icon(Icons.Default.Login, contentDescription = null)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Masuk Petugas", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.Login, contentDescription = null, tint = Color.White)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Masuk Petugas", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                            }
                         }
                     }
                 }
