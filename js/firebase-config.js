@@ -394,6 +394,16 @@ class FirebaseInventoryStore {
       await setDoc(doc(this.db, "users", user.id), user, { merge: true });
     }
 
+    // Sinkronisasi otomatis ke Firebase Authentication jika sedang login via Firebase Auth
+    if (this.auth && this.auth.currentUser) {
+      try {
+        const { updatePassword } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js");
+        await updatePassword(this.auth.currentUser, newPassword.trim());
+      } catch (authErr) {
+        console.warn("Sinkronisasi update password ke Firebase Auth:", authErr.message);
+      }
+    }
+
     this.notifyListeners();
     return true;
   }
