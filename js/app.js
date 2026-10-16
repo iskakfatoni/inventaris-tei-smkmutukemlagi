@@ -875,11 +875,11 @@ function renderInventoryTable() {
 
     let actionButtons = '';
 
-    if (userRole === 'toolman') {
-      // Toolman: Petugas Utama (Akses Penuh Edit & Hapus Master)
+    if (userRole === 'toolman' || userRole === 'kajur') {
+      // Toolman & Kajur: Akses Penuh Edit & Hapus Master Inventaris
       actionButtons = `
         <div style="display: flex; justify-content: flex-end; gap: 6px;">
-          <button class="btn btn-sm btn-secondary" onclick="editItem('${item.id}')" title="Edit Data Barang (Petugas Utama)">
+          <button class="btn btn-sm btn-secondary" onclick="editItem('${item.id}')" title="Edit Data Barang">
             <i class="ph ph-pencil-simple"></i> Edit
           </button>
           <button class="btn btn-sm btn-secondary" style="color: var(--color-danger);" onclick="deleteItem('${item.id}')" title="Hapus Barang">
@@ -896,15 +896,10 @@ function renderInventoryTable() {
           </button>
         </div>
       `;
-    } else if (userRole === 'guest') {
+    } else {
       // Guest: Read-only badge
       actionButtons = `
         <span class="badge badge-asset" style="font-size: 0.75rem; padding: 4px 8px;"><i class="ph ph-check-circle" style="color: var(--color-success); margin-right: 4px;"></i>Terdata</span>
-      `;
-    } else {
-      // Kajur: Supervisi
-      actionButtons = `
-        <span class="badge badge-condition-baik" style="font-size: 0.75rem; font-weight: 500; padding: 4px 8px;">Terverifikasi</span>
       `;
     }
 
@@ -1032,10 +1027,10 @@ function renderProposalsTable() {
 
     let actionButtons = '-';
     if (p.status === 'pending') {
-      if (currentUser.role === 'toolman') {
+      if (currentUser.role === 'toolman' || currentUser.role === 'kajur') {
         actionButtons = `
           <button class="btn btn-sm btn-primary" onclick="openReviewModal('${p.id}')">
-            <i class="ph ph-check"></i> Approval Toolman
+            <i class="ph ph-check"></i> Approval
           </button>
         `;
       } else {
