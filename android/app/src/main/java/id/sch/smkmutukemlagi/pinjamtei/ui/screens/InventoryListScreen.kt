@@ -1,9 +1,12 @@
 package id.sch.smkmutukemlagi.pinjamtei.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.res.painterResource
+import id.sch.smkmutukemlagi.pinjamtei.R
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -72,21 +75,34 @@ fun InventoryListScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Inventaris TEI Admin",
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = TextMain
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.app_logo),
+                                contentDescription = "Logo",
+                                modifier = Modifier
+                                    .size(42.dp)
+                                    .clip(CircleShape)
                             )
-                            Text(
-                                text = "${currentUser?.name ?: "Petugas"} • ${currentUser?.roleTitle ?: "Admin"}",
-                                fontSize = 12.sp,
-                                color = CyanPrimary,
-                                fontWeight = FontWeight.SemiBold,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = "Inventaris TEI Admin",
+                                    fontSize = 19.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextMain
+                                )
+                                Text(
+                                    text = "${currentUser?.name ?: "Petugas"} • ${currentUser?.roleTitle ?: "Admin"}",
+                                    fontSize = 12.sp,
+                                    color = CyanPrimary,
+                                    fontWeight = FontWeight.SemiBold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
                         }
 
                         // Tombol Logout

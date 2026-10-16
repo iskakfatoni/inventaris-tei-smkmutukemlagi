@@ -1,8 +1,11 @@
 package id.sch.smkmutukemlagi.pinjamtei.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.res.painterResource
+import id.sch.smkmutukemlagi.pinjamtei.R
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -66,26 +69,14 @@ fun LoginScreen(
         ) {
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Logo Box
-            Box(
+            // Logo App Melingkar
+            Image(
+                painter = painterResource(id = R.drawable.app_logo),
+                contentDescription = "Logo Inventaris TEI",
                 modifier = Modifier
-                    .size(80.dp)
+                    .size(96.dp)
                     .clip(CircleShape)
-                    .background(
-                        Brush.linearGradient(
-                            colors = listOf(CyanPrimary, Color(0xFF1E40AF))
-                        )
-                    )
-                    .border(2.dp, CyanPrimary.copy(alpha = 0.5f), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Inventory2,
-                    contentDescription = "Logo Inventaris",
-                    tint = Color.White,
-                    modifier = Modifier.size(42.dp)
-                )
-            }
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
