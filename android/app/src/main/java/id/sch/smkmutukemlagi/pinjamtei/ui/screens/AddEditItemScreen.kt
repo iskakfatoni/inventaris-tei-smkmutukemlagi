@@ -1,5 +1,7 @@
 package id.sch.smkmutukemlagi.pinjamtei.ui.screens
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
@@ -30,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import coil.compose.AsyncImage
 import id.sch.smkmutukemlagi.pinjamtei.data.model.InventoryItem
 import id.sch.smkmutukemlagi.pinjamtei.data.utils.DeviceUtils
@@ -79,6 +82,39 @@ fun AddEditItemScreen(
             localBitmapPreview = bitmap
             fotoBarangBase64 = DeviceUtils.compressBitmapToBase64(bitmap, 800, 800, 75)
             Toast.makeText(context, "Foto berhasil diambil dari kamera & dioptimasi!", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // Permission Launcher untuk Izin Kamera Android
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            try {
+                cameraLauncher.launch(null)
+            } catch (e: Exception) {
+                Toast.makeText(context, "Gagal membuka kamera: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+            }
+        } else {
+            Toast.makeText(context, "Izin kamera diperlukan untuk mengambil foto barang.", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    // Helper untuk mengecek izin sebelum membuka kamera
+    val openCameraWithPermission = {
+        val hasPermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (hasPermission) {
+            try {
+                cameraLauncher.launch(null)
+            } catch (e: Exception) {
+                Toast.makeText(context, "Gagal membuka kamera: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+            }
+        } else {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
     }
 
@@ -209,7 +245,7 @@ fun AddEditItemScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             OutlinedButton(
-                                onClick = { cameraLauncher.launch(null) },
+                                onClick = { openCameraWithPermission() },
                                 shape = RoundedCornerShape(10.dp),
                                 colors = ButtonDefaults.outlinedButtonColors(contentColor = CyanPrimary),
                                 border = androidx.compose.foundation.BorderStroke(1.dp, CyanPrimary),
@@ -268,7 +304,7 @@ fun AddEditItemScreen(
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             Button(
-                                onClick = { cameraLauncher.launch(null) },
+                                onClick = { openCameraWithPermission() },
                                 shape = RoundedCornerShape(10.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = CyanPrimary, contentColor = DarkBackground),
                                 modifier = Modifier.weight(1f)
