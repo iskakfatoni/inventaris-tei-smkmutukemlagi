@@ -72,8 +72,7 @@ class AuthRepository(private val firestore: FirebaseFirestore = FirebaseFirestor
                 email == cleanId || username == cleanId || docId == cleanId
             } ?: return Result.failure(Exception("Email atau username '$identifier' tidak terdaftar dalam sistem!"))
 
-            val user = userDoc.toObject(User::class.java)?.copy(id = userDoc.id)
-                ?: return Result.failure(Exception("Gagal memproses data profil pengguna."))
+            val user = User.fromSnapshot(userDoc)
 
             // 2. Proteksi Wewenang Khusus: Hanya Kajur dan Toolman
             val role = user.role.lowercase()

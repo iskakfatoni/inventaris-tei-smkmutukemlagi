@@ -22,7 +22,11 @@ class FirestoreRepository(
                 }
                 if (snapshot != null) {
                     val items = snapshot.documents.mapNotNull { doc ->
-                        doc.toObject(InventoryItem::class.java)?.copy(id = doc.id)
+                        try {
+                            InventoryItem.fromSnapshot(doc)
+                        } catch (e: Exception) {
+                            null
+                        }
                     }.sortedBy { it.no }
                     trySend(items)
                 }
@@ -79,7 +83,11 @@ class FirestoreRepository(
                 }
                 if (snapshot != null) {
                     val loans = snapshot.documents.mapNotNull { doc ->
-                        doc.toObject(Loan::class.java)?.copy(id = doc.id)
+                        try {
+                            Loan.fromSnapshot(doc)
+                        } catch (e: Exception) {
+                            null
+                        }
                     }
                     trySend(loans)
                 }
